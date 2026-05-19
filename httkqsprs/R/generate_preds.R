@@ -59,6 +59,7 @@
 #' 
 #' @import randomForest
 #' @import stringr
+#' @import Rapp
 #' @export generate_preds
 generate_preds <- function(
   Datalabel, 
