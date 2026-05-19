@@ -58,6 +58,7 @@
 #' Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 #' 
 #' @import randomForest
+#' @import stringr
 #' @export generate_preds
 generate_preds <- function(
   Datalabel, 
@@ -73,7 +74,7 @@ generate_preds <- function(
   ## LOAD PACKAGES
   #packages <- c("readxl", "httk","randomForest", "stringr","dplyr", "ctxR")
   #packages <- c("randomForest", "stringr","dplyr")
-  sapply(packages, require, character.only=TRUE)
+  #sapply(packages, require, character.only=TRUE)
 
   #load("Dawson_et_al_2021_PredictionWorkflow/CombinedDescriptors_DED050621.RData") # descriptors in both models
   Descriptors$Opera=paste0(Descriptors$Opera, "_pred")
@@ -104,7 +105,7 @@ generate_preds <- function(
   # Normalize your data using the training data. Then, use the predict function to predict clint bin. Use the training data from the included Revised S2 file from the Dawson et al. 2021 paper to calculate the bin median values. Finally, determine whether clint predictions are in or out of the AD, using the the method from Roy et al. 2015. 
 
   #load("ClintModel_3Bin_040121.RData")
-  msd <- httkqsprs::clint.msd
+  msd <- clint.msd
   submsd <- msd[,which(names(msd)%in%names(chemlist))]
 
   ##Standardize by training set mean and sd 
@@ -175,8 +176,8 @@ generate_preds <- function(
   # Normalize your data using the training data. Then, use the predict function to predict fup values. After this, determine whether fup predictions are in or out of the AD, using the the method from Roy et al. 2015. 
   fupchemlist=chemlist 
   #load("fup_RFmodel_30desc_select_by_sqrt_transform.RData")
-  fupmodvars=row.names(httkqsprs::RF.fit$importance)
-  msd <- httkqsprs::fup.smsd
+  fupmodvars=row.names(RF.fit$importance)
+  msd <- fup.msd
 
   #substitute the correct names into the chemlist 
   #Here, adapt descriptor names to the format expected in the fup random forest file. 
@@ -232,4 +233,9 @@ generate_preds <- function(
 
   chemlistsc_fup_narm=data.frame(chemlistsc_fup_narm, SIdf)
   write.csv(chemlistsc_fup_narm, file=paste0("Novel_fup_predictions_with_AD_", Datalabel,"_descs_from_OPERA",Operaversion, ".csv"))
+
+  return(list(
+    Clint = chemlistsc_Clint_narm,
+    Fup = chemlistsc_fup_narm
+  ))
 }
