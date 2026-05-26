@@ -11,7 +11,7 @@ An object of class \code{randomForest} of length 18.
 ClintClass3Mod
 }
 \description{
-This is a classification random forest model that predicts intrinsic hepatic clearance as occuring at one of three rates: slow, medium, or fast.
+This is a classification random forest model that predicts intrinsic hepatic clearance as occurring at one of three rates: slow, medium, or fast.
 }
 \references{
 Dawson, J. S., Wambaugh, J. F., Isaacs, K. K., & Setzer, R. W. (2021). A random forest model for predicting intrinsic hepatic clearance of organic chemicals. Environmental Science & Technology, 55(8), 4979-4988.
