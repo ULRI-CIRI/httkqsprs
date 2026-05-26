@@ -13,4 +13,7 @@ fup.msd
 \description{
 The mean and standard deviation of the descriptors in the training set for the Dawson 2021 Fup Model
 }
+\references{
+Dawson, J. S., Wambaugh, J. F., Isaacs, K. K., & Setzer, R. W. (2021). A random forest model for predicting intrinsic hepatic clearance of organic chemicals. Environmental Science & Technology, 55(8), 4979-4988.
+}
 \keyword{datasets}

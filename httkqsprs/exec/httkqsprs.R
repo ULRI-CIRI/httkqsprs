@@ -8,6 +8,7 @@ output.dir <- "."
 
 cat(getwd(),"\n")
 
+library(httkqsprs)
 message("Processing OPERA and Padel descriptor files starting with text: ", label)
 
 generate_preds(label, output.dir)
