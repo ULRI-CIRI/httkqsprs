@@ -1,6 +1,6 @@
 Package: httkqsprs
 Title: Chemical-Specific HTTK Parameters from QSPR Models
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
            person("John", "Wambaugh", email = "wambaugh.research@gmail.com", 
              role = c("aut", "cre"),

@@ -11,7 +11,9 @@ generate_preds(
   output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  conn_str = NULL,
+  chems = NULL
 )
 }
 \arguments{
