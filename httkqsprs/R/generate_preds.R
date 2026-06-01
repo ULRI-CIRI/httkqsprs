@@ -129,7 +129,7 @@ generate_preds <- function(
 
     cichem_list   <- chems
     opera_version <- "2.9"                      # default; change as needed
-    column_names  <- NULL #Descriptors$Padel # NULL = all descriptors; or e.g. c("ALogP", "AMR")
+    column_names  <- Descriptors$Padel # NULL = all descriptors; or e.g. c("ALogP", "AMR")
 
     # ── Build column annotation for RETURNS SETOF RECORD ─────────────────────────
     # The function returns an untyped record set, so we must tell PostgreSQL the
@@ -143,10 +143,13 @@ generate_preds <- function(
         AND  ($2::TEXT[] IS NULL OR name = ANY($2::TEXT[]))
       ORDER  BY index
     "
-    descriptor_names <- dbGetQuery(con, lookup_sql, params = c(
-      list(opera_version),
-      ifelse(is.null(column_names), NA, column_names)
-      )  # NA -> NULL in RPostgres
+    descriptor_names <- dbGetQuery(con, lookup_sql, params = list(
+        opera_version,
+        ifelse(is.null(column_names), 
+          NA, 
+          paste0("{", paste(column_names, collapse = ","), "}")
+          )  # NA -> NULL in RPostgres
+        )
       )$name
 
     col_defs <- paste(
@@ -163,10 +166,14 @@ generate_preds <- function(
     )
 
     result <- dbGetQuery(con, proc_sql, params = list(
-      cichem_list,
+      paste0("{", paste(cichem_list, collapse = ","), "}"),
       opera_version,
-      if (is.null(column_names)) NA else column_names
-    ))
+      ifelse(is.null(column_names), 
+          NA, 
+          paste0("{", paste(column_names, collapse = ","), "}")
+          )  # NA -> NULL in RPostgres
+      )
+      )
 
     print(result)
     }
