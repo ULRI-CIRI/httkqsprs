@@ -129,7 +129,7 @@ generate_preds <- function(
 
     cichem_list   <- chems
     opera_version <- "2.9"                      # default; change as needed
-    column_names  <- c(Descriptors$Opera, Descriptors$Padel) # NULL = all descriptors; or e.g. c("ALogP", "AMR")
+    column_names  <- NULL #Descriptors$Padel # NULL = all descriptors; or e.g. c("ALogP", "AMR")
 
     # ── Build column annotation for RETURNS SETOF RECORD ─────────────────────────
     # The function returns an untyped record set, so we must tell PostgreSQL the
@@ -143,10 +143,11 @@ generate_preds <- function(
         AND  ($2::TEXT[] IS NULL OR name = ANY($2::TEXT[]))
       ORDER  BY index
     "
-    descriptor_names <- dbGetQuery(con, lookup_sql, params = list(
-      opera_version,
-      if (is.null(column_names)) NA else column_names  # NA -> NULL in RPostgres
-    ))$name
+    descriptor_names <- dbGetQuery(con, lookup_sql, params = c(
+      list(opera_version),
+      ifelse(is.null(column_names), NA, column_names)
+      )  # NA -> NULL in RPostgres
+      )$name
 
     col_defs <- paste(
       c('"cichem" TEXT',
