@@ -42,7 +42,8 @@ get_padel <- function(cichem_list = chems,
  # cichem_list   <- chems
  # opera_version <- "2.9"                      # default; change as needed
   column_names  <- descriptors # NULL = all descriptors; or e.g. c("ALogP", "AMR")
-
+  # R changed "-" to "."
+  column_names  <- gsub("\\.", "-", column_names)
   # ── Build column annotation for RETURNS SETOF RECORD ─────────────────────────
   # The function returns an untyped record set, so we must tell PostgreSQL the
   # column names and types in the calling AS t(...) clause.
@@ -87,6 +88,7 @@ get_padel <- function(cichem_list = chems,
     )
     )
   
+  colnames(Padel) <- c("MoleculeID",descriptors)
   rownames(Padel) <- cichem_list
 
   return (Padel)
