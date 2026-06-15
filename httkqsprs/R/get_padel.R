@@ -88,8 +88,9 @@ get_padel <- function(cichem_list = chems,
     )
     )
   
-  colnames(Padel) <- c("MoleculeID",descriptors)
-  rownames(Padel) <- cichem_list
+  colnames(Padel)[1] <- "MoleculeID"
+  colnames(Padel) <- gsub("-", "\\.", colnames(Padel))
+  rownames(Padel) <- sort(cichem_list)
 
   return (Padel)
 }

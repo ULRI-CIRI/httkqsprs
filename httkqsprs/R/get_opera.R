@@ -118,7 +118,7 @@ SELECT ', var.names, '
   Opera <- try(dbGetQuery(con, opera_query))
   colnames(Opera) <- descriptors
 
-  rownames(Opera) <- cichem_list
+  rownames(Opera) <- sort(cichem_list)
 
   return (Opera)
 }
