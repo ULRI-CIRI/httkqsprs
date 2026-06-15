@@ -51,3 +51,6 @@ Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties 
 
 Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 }
+\author{
+John Wambaugh
+}
