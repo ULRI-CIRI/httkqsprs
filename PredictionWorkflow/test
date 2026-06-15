@@ -1,5 +1,7 @@
 detach("package:httkqsprs",unload=TRUE)
-devtools::install(".")
-PIPELINES_CONN_STR<-"postgres://john.wambaugh:okkyEe9bkt4y1FuEtYIelg@ciri-res-pgsql.ulri.ul.org:5432/pipelines"
+devtools::install("httkqsprs")
+Sys.setenv("PIPELINES_CONN_STR"="postgres://john.wambaugh:okkyEe9bkt4y1FuEtYIelg@ciri-res-pgsql.ulri.ul.org:5432/pipelines")
 library(httkqsprs)
-generate_preds("June2026",chems=c("CICHEM000000001", "CICHEM000000002", "CICHEM000000003"))
+chem.ids <- c("CICHEM000200048","CICHEM000200014")
+debug(generate_preds)
+generate_preds("June2026",chems=chem.ids)
