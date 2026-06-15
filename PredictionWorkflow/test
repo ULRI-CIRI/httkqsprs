@@ -7,7 +7,7 @@ Sys.setenv("PIPELINES_CONN_STR"="postgres://john.wambaugh:okkyEe9bkt4y1FuEtYIelg
 # load library
 library(httkqsprs)
 # create list of chemical ids
-chem.ids <- c("CICHEM000200048","CICHEM000200014")
+chem.ids <- c("CICHEM010017986","CICHEM000200048","CICHEM000200014")
 # Not currently needed:
 #debug(get_padel)
 # generate Clint and Fup values for the chemicals ()
