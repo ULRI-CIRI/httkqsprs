@@ -57,16 +57,22 @@
 #' 
 #' Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 #' 
+#' @author John Wambaugh
+#' 
 #' @import randomForest
 #' @import stringr
 #' @import Rapp
+#' @import DBI
+#' @import RPostgres
 #' @export generate_preds
 generate_preds <- function(
   Datalabel, 
   output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv")
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  conn_str = NULL,
+  chems = NULL)
 {
   if (is.null(output.path)) {
     output.path <- tempdir()
@@ -80,21 +86,32 @@ generate_preds <- function(
   #load("Dawson_et_al_2021_PredictionWorkflow/CombinedDescriptors_DED050621.RData") # descriptors in both models
   Descriptors$Opera=paste0(Descriptors$Opera, "_pred")
 
-  ## Specify files with descriptors for new chemicals
-  NEWOPERA <- paste0(Datalabel, operapostfix)
-  NEWPADEL <- paste0(Datalabel, padelpostfix)
+  if (is.null(chems))
+  {
+    ## Specify files with descriptors for new chemicals
+    NEWOPERA <- paste0(Datalabel, operapostfix)
+    NEWPADEL <- paste0(Datalabel, padelpostfix)
 
-  #adding the new opera predictions
-  Opera = read.csv(NEWOPERA)
+    #adding the new opera predictions
+    Opera = read.csv(NEWOPERA)
 
-  #adding new padel predictors
-  Padel <- read.csv(NEWPADEL)
+    #adding new padel predictors
+    Padel <- read.csv(NEWPADEL)
 
-  Opera=Opera[,c(1,which(names(Opera)%in%Descriptors$Opera))]
-  Padel=Padel[,c(1,which(names(Padel)%in%Descriptors$Padel))]
+    Opera=Opera[,c(1,which(names(Opera)%in%Descriptors$Opera))]
+    Padel=Padel[,c(1,which(names(Padel)%in%Descriptors$Padel))]
+    #Merge with truncated opera and padel lists
+    chemlist=merge(Opera, Padel, by.x="MoleculeID", by.y="Name", all.x=TRUE)
+  } else {
+ 
+    Padel <- get_padel(cichem_list = chems,
+                       descriptors = Descriptors$Padel)
 
-  #Merge with truncated opera and padel lists
-  chemlist=merge(Opera, Padel, by.x="MoleculeID", by.y="Name", all.x=TRUE)
+    Opera <- get_opera(cichem_list = chems,
+                       descriptors = Descriptors$Opera)
+    chemlist <- cbind(Padel,Opera)
+  }
+
   desccols=which(names(chemlist)%in%Descriptors$Padel | names(chemlist)%in%Descriptors$Opera)
   Descnames=names(chemlist)[desccols]
 

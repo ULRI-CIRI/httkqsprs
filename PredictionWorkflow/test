@@ -1,0 +1,18 @@
+# uninstall package httkqsprs if its already loaded
+detach("package:httkqsprs",unload=TRUE)
+# reinstall the package
+devtools::install("httkqsprs")
+# set up database credentials to get descriptors
+Sys.setenv("PIPELINES_CONN_STR"="postgres://john.wambaugh:okkyEe9bkt4y1FuEtYIelg@ciri-res-pgsql.ulri.ul.org:5432/pipelines")
+# load library
+library(httkqsprs)
+# create list of chemical ids
+chem.ids <- c("CICHEM010017986","CICHEM000200048","CICHEM000200014")
+# Not currently needed:
+#debug(get_padel)
+# generate Clint and Fup values for the chemicals ()
+out <- generate_preds("June2026",chems=chem.ids)
+# Clint Values:
+out$Clint[,c("MoleculeID","ClintPredictBin_MD")]
+# Fup Values:
+out$Fup[,c("MoleculeID","Fup.RF.pred")]

@@ -11,7 +11,9 @@ generate_preds(
   output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  conn_str = NULL,
+  chems = NULL
 )
 }
 \arguments{
@@ -48,4 +50,7 @@ Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput tox
 Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
 
 Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
+}
+\author{
+John Wambaugh
 }
