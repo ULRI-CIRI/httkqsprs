@@ -41,4 +41,5 @@ Imports:
   randomForest,
   Rapp,
   readxl,
-  stringr
+  stringr,
+  RPostgres
