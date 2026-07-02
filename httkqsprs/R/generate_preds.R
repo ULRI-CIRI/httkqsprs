@@ -154,14 +154,14 @@ generate_preds <- function(
   ClintComplete <- complete.cases(chemlistsc_Clint)
   chemlistsc_Clint_narm <- chemlistsc_Clint[which(ClintComplete == TRUE), ]
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
-  write.csv(
-    IncompleteClint,
-    file = paste0(
-      "Incomplete_Opera_PaDEL_Clint_predictions_",
-      Datalabel,
-      ".csv"
-    )
-  )
+  # write.csv(
+  #   IncompleteClint,
+  #   file = paste0(
+  #     "Incomplete_Opera_PaDEL_Clint_predictions_",
+  #     Datalabel,
+  #     ".csv"
+  #   )
+  # )
 
   #Make Predictions
   set.seed(1255)
@@ -213,16 +213,16 @@ generate_preds <- function(
   SIdf$Outlier <- 0 #something is assumed to be inside the AD unless it it found to not be
 
   chemlistsc_Clint_narm <- data.frame(chemlistsc_Clint_narm, SIdf)
-  write.csv(
-    chemlistsc_Clint_narm,
-    file = paste0(
-      "Novel_clint_predictions_with_AD_",
-      Datalabel,
-      "_descs_from_OPERA",
-      Operaversion,
-      ".csv"
-    )
-  )
+  # write.csv(
+  #   chemlistsc_Clint_narm,
+  #   file = paste0(
+  #     "Novel_clint_predictions_with_AD_",
+  #     Datalabel,
+  #     "_descs_from_OPERA",
+  #     Operaversion,
+  #     ".csv"
+  #   )
+  # )
 
   #
   ## Fraction unbound by plasma(fup)
@@ -268,10 +268,10 @@ generate_preds <- function(
   fupscComplete <- complete.cases(chemlistfupsc)
   chemlistsc_fup_narm <- chemlistfupsc[which(fupscComplete == TRUE), ]
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
-  write.csv(
-    Incompletescfup,
-    file = paste0("Incomplete_Opera_PaDEL_fup_predictions_", Datalabel, ".csv")
-  )
+  # write.csv(
+  #   Incompletescfup,
+  #   file = paste0("Incomplete_Opera_PaDEL_fup_predictions_", Datalabel, ".csv")
+  # )
 
   #Make Predictions with only five chemicals
   set.seed(1255)
@@ -295,16 +295,16 @@ generate_preds <- function(
   SIdf$Outlier <- 0 #something is assumed to be inside the AD unless it it found to not be
 
   chemlistsc_fup_narm <- data.frame(chemlistsc_fup_narm, SIdf)
-  write.csv(
-    chemlistsc_fup_narm,
-    file = paste0(
-      "Novel_fup_predictions_with_AD_",
-      Datalabel,
-      "_descs_from_OPERA",
-      Operaversion,
-      ".csv"
-    )
-  )
+  # write.csv(
+  #   chemlistsc_fup_narm,
+  #   file = paste0(
+  #     "Novel_fup_predictions_with_AD_",
+  #     Datalabel,
+  #     "_descs_from_OPERA",
+  #     Operaversion,
+  #     ".csv"
+  #   )
+  # )
 
   return(list(
     Clint = chemlistsc_Clint_narm,
