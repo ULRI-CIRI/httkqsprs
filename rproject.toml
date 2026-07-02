@@ -8,6 +8,6 @@ repositories = [
 
 dependencies = [
     { name = "httkqsprs", path = "./httkqsprs", dependencies_only = true },
-    "dotenv",
     "devtools",
+    "tibble",
 ]

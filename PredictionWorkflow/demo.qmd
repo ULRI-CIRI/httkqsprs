@@ -1,0 +1,154 @@
+# Run prediction workflow
+
+
+```{r}
+#| include: false
+# configure R environment
+setwd('~/dev/dawson2021-httkqspr')
+source('.Rprofile')
+```
+
+```{r}
+#' Get a PostgreSQL database connection from the environment variable specified
+#'
+#' Returns a database connection from the connection parameters in the environment varialbe passed.
+#' The environment variable is expected to have a valid PostgreSQL connection string. As an example,
+#' it could look something like this: PIPELINES_CONN_STR=postgres://username:password@host:port/db
+#' All five fields (username, password, host, port, database) must be specified.  See details on the
+#' connection string here: https://www.postgresql.org/docs/current/libpq-connect.html
+#'
+#' @param enviro_variable The environments variable which contains the database connection
+#' @return An active database connection that will be closed when the application exists
+pg_connection_from_env <- function(enviro_variable) {
+  conn_str <- Sys.getenv(enviro_variable, unset = "empty")
+  if (conn_str == "empty") {
+    stop(
+      "Environment variable ",
+      enviro_variable,
+      " not found"
+    )
+  }
+  parts <- regmatches(
+    conn_str,
+    regexec(
+      "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)",
+      conn_str,
+      perl = TRUE
+    )
+  )[[1]]
+  conn <- DBI::dbConnect(
+    RPostgres::Postgres(),
+    user = parts[2],
+    password = parts[3],
+    host = parts[4],
+    port = if (nchar(parts[5]) > 0) as.integer(parts[5]) else 5432L,
+    dbname = parts[6]
+  )
+  # ensure the database connection is closed at the end of the R session
+  reg.finalizer(globalenv(), function(e) DBI::dbDisconnect(conn), onexit = TRUE)
+  return(conn)
+}
+conn <- pg_connection_from_env("PIPELINES_CONN_STR")
+```
+
+```{r}
+#' Escape a vector of values for use in a SQL IN clause
+#'
+#' Quotes and escapes each element using ANSI SQL literal escaping, then
+#' collapses them into a single comma-separated string safe for interpolation
+#' into a SQL query. The result can be dropped directly into an IN clause:
+#' \code{WHERE id IN (escape_vector(ids))}.
+#'
+#' @param vector A vector of values to escape and collapse.
+#' @return A \code{DBI::SQL} object containing the escaped, comma-separated values.
+#' @examples
+#' escape_vector(c("red", "blue", "green"))
+#' # SQL: 'red', 'blue', 'green'
+escape_vector <- function(vector) {
+  ansi <- DBI::ANSI()
+  collapsed <- paste(
+    sapply(
+      vector,
+      function(x) DBI::dbQuoteLiteral(ansi, x)
+    ),
+    collapse = ", "
+  )
+  return(DBI::SQL(collapsed))
+}
+```
+
+```{r}
+#' Query a database and return the results as a tibble
+#'
+#' Interpolates named parameters into a SQL query string using
+#' \code{DBI::sqlInterpolate}, executes it against the provided connection,
+#' and returns the result as a \code{\link[tibble]{tibble}}.
+#'
+#' Use \code{?name} placeholders in \var{query_str} for each named argument
+#' passed via \code{...}. Values are safely escaped via \code{DBI::ANSI()},
+#' so the function is safe against SQL injection as long as all user-supplied
+#' values are passed as named arguments rather than interpolated into the
+#' query string directly.
+#'
+#' @param conn A \code{DBIConnection} object.
+#' @param query_str A SQL query string containing \code{?name} placeholders.
+#' @param ... Named arguments whose values will be substituted for the
+#'   corresponding \code{?name} placeholders in \var{query_str}. Use
+#'   \code{\link{escape_vector}} to pass multi-value IN clause parameters.
+#' @return A \code{\link[tibble]{tibble}} containing the query results.
+#' @examples
+#' query_db(conn, "SELECT * FROM t WHERE id = ?id AND ver = ?ver",
+#'          id = 42L, ver = "2.9")
+query_db <- function(conn, query_str, ...) {
+  query <- DBI::sqlInterpolate(DBI::ANSI(), query_str, ...)
+  tibble::as_tibble(DBI::dbGetQuery(conn, query))
+}
+```
+
+```{r}
+query_str <- 'SELECT "chemical_identifier"."cichem",
+       "chemical_identifier"."casrn",
+       "chemical_identifier"."dtxsid",
+       "opera_prediction_molecule"."is_qsar_ready",
+       "opera_prediction_molecule"."discard_error",
+       "opera_cerapp_endpoint"."id",
+       "opera_cerapp_endpoint"."molecule_id",
+       "opera_cerapp_endpoint"."mode",
+       "opera_cerapp_endpoint"."prediction",
+       "opera_cerapp_endpoint"."ad_flag",
+       "opera_cerapp_endpoint"."ad_index",
+       "opera_cerapp_endpoint"."conf_index",
+       "opera_cerapp_endpoint"."cas_neighbors",
+       "opera_cerapp_endpoint"."inchi_key_neighbors",
+       "opera_cerapp_endpoint"."dtxsid_neighbors",
+       "opera_cerapp_endpoint"."exp_neighbors",
+       "opera_cerapp_endpoint"."pred_neighbors"
+FROM "opera_cerapp_endpoint"
+LEFT OUTER JOIN "opera_prediction_molecule"
+  ON ("opera_cerapp_endpoint"."molecule_id" = "opera_prediction_molecule"."id")
+LEFT OUTER JOIN "chemical_identifier"
+  ON ("opera_prediction_molecule"."inchikey" = "chemical_identifier"."inchikey")
+WHERE "chemical_identifier"."cichem" IN (?cichems)
+    AND "opera_prediction_molecule"."opera_version" = ?opera_version
+ORDER BY "chemical_identifier"."cichem" ASC, "opera_cerapp_endpoint"."id" ASC'
+
+df <- query_db(
+  conn,
+  query_str,
+  opera_version = "2.9",
+  cichems = escape_vector(c('CICHEM000200014', 'CICHEM000200048'))
+)
+df
+```
+
+
+```{r}
+chem.ids <- c("CICHEM010017986", "CICHEM000200048", "CICHEM000200014")
+httkqsprs::generate_preds(
+  "zzz",
+  chems = chem.ids,
+  conn_str = Sys.getenv("PIPELINES_CONN_STR")
+)
+httkqsprs::get_opera(chem.ids, conn_str = Sys.getenv("PIPELINES_CONN_STR"))
+httkqsprs::get_padel(chem.ids, conn_str = Sys.getenv("PIPELINES_CONN_STR"))
+```
