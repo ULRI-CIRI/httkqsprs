@@ -1,69 +1,90 @@
 #' Retrieve OPeRA descriptors from SQL database
-#' 
+#'
 #' @author John Wambaugh and Andy Shapiro
 #'
 #' @references
 #' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
-#' 
+#'
 #' @export get_opera
-get_opera <- function(cichem_list = chems,
-                      descriptors = NULL,
-                      opera_version = "2.9", 
-                      conn_str = NULL)
-{
+get_opera <- function(
+  cichem_list = chems,
+  descriptors = NULL,
+  opera_version = "2.9",
+  conn_str = NULL
+) {
   if (is.null(conn_str)) {
-    if (exists("PIPELINES_CONN_STR")) conn_str <- PIPELINES_CONN_STR
-    else conn_str <- Sys.getenv("PIPELINES_CONN_STR")
-  } 
+    conn_str <- Sys.getenv("PIPELINES_CONN_STR")
+  }
   # Code from Andy Shapiro:
-  if (nchar(conn_str) == 0) stop("PIPELINES_CONN_STR is not set")
+  if (nchar(conn_str) == 0) {
+    stop("PIPELINES_CONN_STR is not set")
+  }
 
-  uri   <- httr::parse_url(conn_str)  # parse URI components without httr if preferred
+  uri <- httr::parse_url(conn_str) # parse URI components without httr if preferred
   # Pure-base alternative using regex:
-  m <- regmatches(conn_str, regexpr(
-    "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)", conn_str, perl = TRUE
-  ))
-  parts <- regmatches(conn_str, regexec(
-    "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)", conn_str, perl = TRUE
-  ))[[1]]
+  m <- regmatches(
+    conn_str,
+    regexpr(
+      "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)",
+      conn_str,
+      perl = TRUE
+    )
+  )
+  parts <- regmatches(
+    conn_str,
+    regexec(
+      "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)",
+      conn_str,
+      perl = TRUE
+    )
+  )[[1]]
 
-  con <- dbConnect(
+  con <- DBI::dbConnect(
     RPostgres::Postgres(),
-    user     = parts[2],
+    user = parts[2],
     password = parts[3],
-    host     = parts[4],
-    port     = if (nchar(parts[5]) > 0) as.integer(parts[5]) else 5432L,
-    dbname   = parts[6]
+    host = parts[4],
+    port = if (nchar(parts[5]) > 0) as.integer(parts[5]) else 5432L,
+    dbname = parts[6]
   )
   on.exit(dbDisconnect(con), add = TRUE)
 
   # ── Parameters ────────────────────────────────────────────────────────────────
   # parameters are set by call to function
-  column_names  <- descriptors # NULL = all descriptors; or e.g. c("ALogP", "AMR")
+  column_names <- descriptors # NULL = all descriptors; or e.g. c("ALogP", "AMR")
 
-# Convert names as given by OPERA Excel output into SQL names:
-Opera.SQL.names <- paste0("opera_",
-  gsub("_pred","",tolower(Descriptors$Opera)),
-  "_endpoint") 
-Opera.SQL.names <- gsub("logws","ws", Opera.SQL.names)
-Opera.SQL.names <- gsub("logbcf","bcf", Opera.SQL.names)
-Opera.SQL.names <- gsub("logkm","km", Opera.SQL.names)
-Opera.SQL.names <- gsub("logvp","vp", Opera.SQL.names)
-Opera.SQL.names <- gsub("logoh","aoh", Opera.SQL.names)
-Opera.SQL.suffix <- rep("prediction",length(Opera.SQL.names))
-Opera.SQL.suffix[regexpr("logd55", Opera.SQL.names)!=-1] <- "logd55"
-Opera.SQL.suffix[regexpr("logd74", Opera.SQL.names)!=-1] <- "logd74"
-Opera.SQL.names <- gsub("logd55","logd", Opera.SQL.names)
-Opera.SQL.names <- gsub("logd74","logd", Opera.SQL.names)
+  # Convert names as given by OPERA Excel output into SQL names:
+  Opera.SQL.names <- paste0(
+    "opera_",
+    gsub("_pred", "", tolower(httkqsprs::Descriptors$Opera)),
+    "_endpoint"
+  )
+  Opera.SQL.names <- gsub("logws", "ws", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logbcf", "bcf", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logkm", "km", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logvp", "vp", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logoh", "aoh", Opera.SQL.names)
+  Opera.SQL.suffix <- rep("prediction", length(Opera.SQL.names))
+  Opera.SQL.suffix[regexpr("logd55", Opera.SQL.names) != -1] <- "logd55"
+  Opera.SQL.suffix[regexpr("logd74", Opera.SQL.names) != -1] <- "logd74"
+  Opera.SQL.names <- gsub("logd55", "logd", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logd74", "logd", Opera.SQL.names)
 
   # ── Build SQL Query ─────────────────────────
-  var.names <- paste0('"',paste0(Opera.SQL.names,'"."',Opera.SQL.suffix,collapse='",\n"'),'"\n')
-  chem.names <- paste0("'", paste0(cichem_list, collapse="', '"), "'")
+  var.names <- paste0(
+    '"',
+    paste0(Opera.SQL.names, '"."', Opera.SQL.suffix, collapse = '",\n"'),
+    '"\n'
+  )
+  chem.names <- paste0("'", paste0(cichem_list, collapse = "', '"), "'")
 
-  opera_query <- paste0('
-SELECT ', var.names, '
+  opera_query <- paste0(
+    '
+SELECT ',
+    var.names,
+    '
   FROM "opera_prediction_molecule"
-  LEFT OUTER JOIN "chemical_identifier" 
+  LEFT OUTER JOIN "chemical_identifier"
     ON ("opera_prediction_molecule"."inchikey" = "chemical_identifier"."inchikey")
    LEFT OUTER JOIN "opera_aoh_endpoint"
     ON ("opera_prediction_molecule"."id" = "opera_aoh_endpoint"."molecule_id")
@@ -106,12 +127,15 @@ SELECT ', var.names, '
   LEFT OUTER JOIN "opera_catmos_endpoint"
     ON ("opera_prediction_molecule"."id" = "opera_catmos_endpoint"."molecule_id")
  WHERE "chemical_identifier"."cichem" = ANY(ARRAY[',
-  chem.names, ']) AND 
-    "opera_prediction_molecule"."opera_version" = ', paste0("'",opera_version,"'"), '
+    chem.names,
+    ']) AND
+    "opera_prediction_molecule"."opera_version" = ',
+    paste0("'", opera_version, "'"),
+    '
  ORDER BY "opera_prediction_molecule"."opera_version" DESC
  LIMIT 100
-')
-
+'
+  )
 
   # ── Call the stored procedure ─────────────────────────────────────────────────
 
@@ -120,5 +144,5 @@ SELECT ', var.names, '
 
   rownames(Opera) <- sort(cichem_list)
 
-  return (Opera)
+  return(Opera)
 }
