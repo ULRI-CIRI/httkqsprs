@@ -49,15 +49,6 @@ dependencies = [
 ]
 
 [[packages]]
-name = "Rapp"
-version = "0.4.0"
-source = { repository = "https://cran.r-project.org/" }
-force_source = false
-dependencies = [
-    "yaml12",
-]
-
-[[packages]]
 name = "Rcpp"
 version = "1.1.1-1.1"
 source = { repository = "https://cran.r-project.org/" }
@@ -594,7 +585,6 @@ dependencies = [
     "dplyr",
     "httk",
     "randomForest",
-    "Rapp",
     "readxl",
     "stringr",
     "RPostgres",
@@ -1530,13 +1520,6 @@ dependencies = []
 [[packages]]
 name = "yaml"
 version = "2.3.12"
-source = { repository = "https://cran.r-project.org/" }
-force_source = false
-dependencies = []
-
-[[packages]]
-name = "yaml12"
-version = "0.1.0"
 source = { repository = "https://cran.r-project.org/" }
 force_source = false
 dependencies = []

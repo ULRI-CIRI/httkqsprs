@@ -39,7 +39,6 @@ Imports:
   dplyr,
   httk,
   randomForest,
-  Rapp,
   readxl,
   stringr,
   RPostgres
