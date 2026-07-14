@@ -198,31 +198,37 @@ generate_preds <- function(
   ## Apply applicability domain
   # Using methodology of Roy et al 2015, apply applicability domain of Clint model to predictions of new chemicals and export
 
-  a <- chemlistsc_Clint_narm
-  b <- a[, c("MoleculeID")]
-  a <- a[, which(names(a) %in% Clintmodvars)]
-  a <- abs(a)
-  SImin <- apply(a, 1, min) #Find the min, max, sd, and mean
-  SImax <- apply(a, 1, max)
-  SImean <- apply(a, 1, mean)
-  SIsd <- apply(a, 1, sd)
+  a=chemlistsc_Clint_narm
+  b=a[,c("MoleculeID")]
+  a=a[,which(names(a)%in%Clintmodvars)]
+  a=abs(a)
+  SImin=apply(a,1,min) #Find the min, max, sd, and mean
+  SImax=apply(a,1,max)
+  SImean=apply(a,1,mean)
+  SIsd=apply(a,1,sd)
+
 
   #Several are NA when SD is calculated
-  SIdf <- data.frame(SImin, SImax, SImean, SIsd)
-  SIdf$SI90 <- SIdf$SImean + (1.28 * SIdf$SIsd)
-  SIdf$Outlier <- 0 #something is assumed to be inside the AD unless it it found to not be
+  SIdf=data.frame(SImin, SImax, SImean, SIsd)
+  SIdf$SI90=SIdf$SImean + (1.28 * SIdf$SIsd)
+  SIdf$Outlier=0 #something is assumed to be inside the AD unless it it found to not be
 
-  chemlistsc_Clint_narm <- data.frame(chemlistsc_Clint_narm, SIdf)
-  # write.csv(
-  #   chemlistsc_Clint_narm,
-  #   file = paste0(
-  #     "Novel_clint_predictions_with_AD_",
-  #     Datalabel,
-  #     "_descs_from_OPERA",
-  #     Operaversion,
-  #     ".csv"
-  #   )
-  # )
+  #Based on algorithm specified in Roy et al. (2015)
+  for(i in 1:length(SIdf[,1])){
+    if(SIdf$SImax[i]<3){ next } else
+      if (SIdf$SImin[i] > 3) {
+        SIdf$Outlier[i] = 1 } else if
+    (SIdf$SImean[i] + (1.28 * SIdf$SIsd[i]) > 3){
+      SIdf$Outlier[i]=1}
+  }
+
+  chemlistsc_Clint_narm=data.frame(chemlistsc_Clint_narm, SIdf)
+  # write.csv(chemlistsc_Clint_narm,
+  #           file=paste0("Novel_clint_predictions_with_AD_",
+  #                       Datalabel,
+  #                       "_descs_from_OPERA",
+  #                       Operaversion,
+  #                       ".csv"))
 
   #
   ## Fraction unbound by plasma(fup)
@@ -290,6 +296,7 @@ generate_preds <- function(
   SIsd <- apply(a, 1, sd)
 
   #Several are NA when SD is calculated
+<<<<<<< HEAD
   SIdf <- data.frame(SImin, SImax, SImean, SIsd)
   SIdf$SI90 <- SIdf$SImean + (1.28 * SIdf$SIsd)
   SIdf$Outlier <- 0 #something is assumed to be inside the AD unless it it found to not be
@@ -305,6 +312,28 @@ generate_preds <- function(
   #     ".csv"
   #   )
   # )
+=======
+  SIdf=data.frame(SImin, SImax, SImean, SIsd)
+  SIdf$SI90=SIdf$SImean + (1.28 * SIdf$SIsd)
+  SIdf$Outlier=0 #something is assumed to be inside the AD unless it it found to not be
+
+  #Based on algorithm specified in Roy et al. (2015)
+  for(i in 1:length(SIdf[,1])){
+    if(SIdf$SImax[i]<3){ next } else
+      if (SIdf$SImin[i] > 3) {
+        SIdf$Outlier[i] = 1 } else if
+    (SIdf$SImean[i] + (1.28 * SIdf$SIsd[i]) > 3){
+      SIdf$Outlier[i]=1}
+  }
+
+  chemlistsc_fup_narm=data.frame(chemlistsc_fup_narm, SIdf)
+  write.csv(chemlistsc_fup_narm,
+            file=paste0("Novel_fup_predictions_with_AD_",
+                        Datalabel,
+                        "_descs_from_OPERA",
+                        Operaversion,
+                        ".csv"))
+>>>>>>> main
 
   return(list(
     Clint = chemlistsc_Clint_narm,
