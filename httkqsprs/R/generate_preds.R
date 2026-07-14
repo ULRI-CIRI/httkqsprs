@@ -83,6 +83,7 @@ generate_preds <- function(
   #packages <- c("randomForest", "stringr","dplyr")
   #sapply(packages, require, character.only=TRUE)
 
+  Descriptors <- httkqsprs::Descriptors 
   #load("Dawson_et_al_2021_PredictionWorkflow/CombinedDescriptors_DED050621.RData") # descriptors in both models
   Descriptors$Opera=paste0(Descriptors$Opera, "_pred")
 
