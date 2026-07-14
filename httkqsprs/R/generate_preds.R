@@ -296,23 +296,6 @@ generate_preds <- function(
   SIsd <- apply(a, 1, sd)
 
   #Several are NA when SD is calculated
-<<<<<<< HEAD
-  SIdf <- data.frame(SImin, SImax, SImean, SIsd)
-  SIdf$SI90 <- SIdf$SImean + (1.28 * SIdf$SIsd)
-  SIdf$Outlier <- 0 #something is assumed to be inside the AD unless it it found to not be
-
-  chemlistsc_fup_narm <- data.frame(chemlistsc_fup_narm, SIdf)
-  # write.csv(
-  #   chemlistsc_fup_narm,
-  #   file = paste0(
-  #     "Novel_fup_predictions_with_AD_",
-  #     Datalabel,
-  #     "_descs_from_OPERA",
-  #     Operaversion,
-  #     ".csv"
-  #   )
-  # )
-=======
   SIdf=data.frame(SImin, SImax, SImean, SIsd)
   SIdf$SI90=SIdf$SImean + (1.28 * SIdf$SIsd)
   SIdf$Outlier=0 #something is assumed to be inside the AD unless it it found to not be
@@ -327,13 +310,12 @@ generate_preds <- function(
   }
 
   chemlistsc_fup_narm=data.frame(chemlistsc_fup_narm, SIdf)
-  write.csv(chemlistsc_fup_narm,
-            file=paste0("Novel_fup_predictions_with_AD_",
-                        Datalabel,
-                        "_descs_from_OPERA",
-                        Operaversion,
-                        ".csv"))
->>>>>>> main
+  # write.csv(chemlistsc_fup_narm,
+  #           file=paste0("Novel_fup_predictions_with_AD_",
+  #                       Datalabel,
+  #                       "_descs_from_OPERA",
+  #                       Operaversion,
+  #                       ".csv"))
 
   return(list(
     Clint = chemlistsc_Clint_narm,
