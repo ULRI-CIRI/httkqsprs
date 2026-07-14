@@ -61,7 +61,6 @@
 #'
 #' @import randomForest
 #' @import stringr
-#' @import Rapp
 #' @import DBI
 #' @import RPostgres
 #' @export generate_preds
