@@ -61,7 +61,7 @@ Opera.SQL.names <- gsub("logd74","logd", Opera.SQL.names)
   chem.names <- paste0("'", paste0(cichem_list, collapse="', '"), "'")
 
   opera_query <- paste0('
-SELECT ', var.names, '
+SELECT chemical_identifier.cichem, ', var.names, '
   FROM "opera_prediction_molecule"
   LEFT OUTER JOIN "chemical_identifier" 
     ON ("opera_prediction_molecule"."inchikey" = "chemical_identifier"."inchikey")
@@ -109,16 +109,15 @@ SELECT ', var.names, '
   chem.names, ']) AND 
     "opera_prediction_molecule"."opera_version" = ', paste0("'",opera_version,"'"), '
  ORDER BY "opera_prediction_molecule"."opera_version" DESC
- LIMIT 100
 ')
 
 
   # ── Call the stored procedure ─────────────────────────────────────────────────
 
   Opera <- try(dbGetQuery(con, opera_query))
-  colnames(Opera) <- descriptors
+  colnames(Opera) <- c("cichem",descriptors)
 
-  rownames(Opera) <- sort(cichem_list)
+  rownames(Opera) <- Opera <- Opera$cichem
 
   return (Opera)
 }
