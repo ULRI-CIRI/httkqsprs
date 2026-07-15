@@ -1,7 +1,9 @@
 #' Calculate Roy et al. (2015) applicability domain metrics.
 #'
 #' Applies the Roy et al. (2015) applicability domain (AD) procedure to
-#' standardized descriptor values for each chemical.
+#' standardized descriptor values for each chemical. This method essentially 
+#' calculates a z-score for each descriptor using the mean and standard deviation
+#' of the training set.
 #'
 #' The function first subsets to the descriptor columns used by the model,
 #' computes absolute standardized values, and then calculates:

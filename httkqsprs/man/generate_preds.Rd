@@ -19,14 +19,25 @@ generate_preds(
 \arguments{
 \item{Datalabel}{A character string that will be used to label the output files. This should be the same as the prefix of the OPERA and PaDEL descriptor files for your chemicals of interest.}
 
-\item{Operaversion}{A character string that specifies the version of OPERA used}
+\item{output.path}{Optional output directory path. Defaults to \code{tempdir()}.}
+
+\item{Operaversion}{A character string that specifies the version of OPERA used.}
 
 \item{operapostfix}{A character string that specifies the postfix of the OPERA descriptor file for your chemicals of interest. The default is "-smi_OPERA2.9Pred.csv", which corresponds to the OPERA predictions for 200 chemicals included in this folder.}
 
 \item{padelpostfix}{A character string that specifies the postfix of the PaDEL descriptor file for your chemicals of interest. The default is "_QSAR-ready_smi_PadelDesc.csv", which corresponds to the PaDEL descriptors for 200 chemicals included in this folder.}
+
+\item{conn_str}{Unused placeholder for connection string compatibility.}
+
+\item{chems}{Optional character vector of CICHEM identifiers. If provided,
+descriptors are queried via database helper functions instead of CSV files.}
 }
 \value{
-This function will output two csv files: one with the Clint predictions and applicability domain results, and one with the Fup predictions and applicability domain results. The files will be labeled with the Datalabel parameter and the version of OPERA used.
+A named list with:
+\describe{
+\item{Clint}{Data frame returned by \code{\link[=calc_clint]{calc_clint()}}.}
+\item{Fup}{Data frame returned by \code{\link[=calc_fup]{calc_fup()}}.}
+}
 }
 \description{
 OPERA predictors include:
@@ -49,7 +60,7 @@ Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput tox
 
 Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
 
-Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
+Yap, Chun Wei. "PaDEL-descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 }
 \author{
 John Wambaugh
