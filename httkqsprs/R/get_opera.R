@@ -41,16 +41,20 @@ Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
 
   # ── Build SQL Query ─────────────────────────
   var.names <- paste0('\"',
-    paste0(Opera.SQL.names,
-      '\".\"',
-      Opera.SQL.suffix,
+    paste0(
+      paste0(
+        Opera.SQL.names,
+        '\".\"',
+        Opera.SQL.suffix,
+        "\" AS \"",
+        descriptors
+        ),
       collapse='\",\n\"'),
     '\"\n')
 
-  Opera <- try(pg_query(
-  conn, paste0('
-  SELECT "chemical_identifier"."cichem" AS "cichem", ', 
-  var.names, '
+  query <- sprintf(' 
+  SELECT "chemical_identifier"."cichem" AS "cichem",
+  %s
   FROM "opera_prediction_molecule"
   LEFT OUTER JOIN "chemical_identifier" 
     ON ("opera_prediction_molecule"."inchikey" = "chemical_identifier"."inchikey")
@@ -95,12 +99,18 @@ Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
   LEFT OUTER JOIN "opera_catmos_endpoint"
     ON ("opera_prediction_molecule"."id" = "opera_catmos_endpoint"."molecule_id")
  WHERE "chemical_identifier"."cichem" IN (?cichems) AND 
-    "opera_prediction_molecule"."opera_version" = \'',
-    opera_version, '\'
- ORDER BY "opera_prediction_molecule"."opera_version" DESC'),
-  schema = "public",
-  cichems = pg_escape_vector(cichem_list)
-  ))
+    "opera_prediction_molecule"."opera_version" = ?opera_version
+ ORDER BY "opera_prediction_molecule"."opera_version" DESC
+ ', var.names)
+
+Opera <- try(pg_query(
+    conn,
+    query,
+    schema = "public",
+    opera_version = opera_version,
+    cichems = pg_escape_vector(cichem_list)
+    )
+  )
 
   colnames(Opera) <- c("MoleculeID",descriptors)
 
