@@ -1,17 +1,22 @@
 #' Calculate Clint predictions and Roy AD metrics
 #'
-#' Standardizes descriptor inputs for the Clint random forest classifier,
-#' predicts Clint bins, maps bins to median and SD clearance values from the
-#' training data, computes Roy et al. applicability-domain metrics, and writes
-#' Clint output CSV files.
+#' Retrieves only the descriptors required by the Clint model, standardizes
+#' descriptor inputs for the Clint random forest classifier, predicts Clint
+#' bins, maps bins to median and SD clearance values from the training data,
+#' computes Roy et al. applicability-domain metrics, and writes Clint output
+#' CSV files.
 #'
-#' @param chemlist Data frame of input chemicals and descriptors. The first
-#'   column is treated as an identifier and descriptor columns are matched to
-#'   the Clint model requirements.
-#' @param descnames Character vector of descriptor column names to standardize
-#'   using `clint.msd`.
 #' @param datalabel Character scalar used in output filenames.
 #' @param opera_version Character scalar used in output filenames.
+#' @param chems Optional character vector of CICHEM identifiers. If provided,
+#'   descriptors are retrieved from the database using [get_padel()] and
+#'   [get_opera()].
+#' @param operapostfix Character postfix of the OPERA descriptor CSV when
+#'   `chems` is `NULL`.
+#' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
+#'   `chems` is `NULL`.
+#' @param conn_str Optional PostgreSQL connection string used by descriptor
+#'   retrieval helpers when `chems` is provided.
 #'
 #' @return Data frame of complete-case Clint predictions with columns for
 #'   `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and
@@ -20,6 +25,9 @@
 #' @details
 #' Workflow:
 #' \enumerate{
+#'   \item Determine Clint-required descriptor names from `ClintClass3Mod`.
+#'   \item Retrieve only those OPERA and PaDEL descriptors from CSV files or
+#'   database helpers.
 #'   \item Standardize descriptors using `clint.msd` means/SDs.
 #'   \item Restrict to `ClintClass3Mod` predictors.
 #'   \item Remove incomplete rows and write an incomplete-records file.
@@ -31,26 +39,73 @@
 #' }
 #'
 #' @author Daniel E. Dawson and John Wambaugh
-#' 
+#'
 #' @references
 #' Dawson, Daniel E., et al. (2021). Designing QSARs for parameters of
 #' high-throughput toxicokinetic models using open-source descriptors.
 #' \emph{Environmental Science \& Technology}, 55(9), 6505-6517.
-
 #'
 #' @keywords internal
-calc_clint <- function(chemlist, descnames, datalabel, opera_version) {
+calc_clint <- function(
+  datalabel,
+  opera_version,
+  chems = NULL,
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  conn_str = NULL
+) {
+  Descriptors <- httkqsprs::Descriptors
+  opera_desc_all <- paste0(Descriptors$Opera, "_pred")
+  clintmodvars <- row.names(importance(ClintClass3Mod))
+
+  clint_opera_desc <- intersect(opera_desc_all, clintmodvars)
+  clint_padel_desc <- intersect(Descriptors$Padel, clintmodvars)
+
+  if (is.null(chems)) {
+    NEWOPERA <- paste0(datalabel, operapostfix)
+    NEWPADEL <- paste0(datalabel, padelpostfix)
+
+    Opera <- read.csv(NEWOPERA)
+    Padel <- read.csv(NEWPADEL)
+
+    missing_opera <- setdiff(clint_opera_desc, names(Opera))
+    if (length(missing_opera) > 0) {
+      for (nm in missing_opera) Opera[[nm]] <- NA_real_
+    }
+
+    missing_padel <- setdiff(clint_padel_desc, names(Padel))
+    if (length(missing_padel) > 0) {
+      for (nm in missing_padel) Padel[[nm]] <- NA_real_
+    }
+
+    Opera <- Opera[, c(1, which(names(Opera) %in% clint_opera_desc)), drop = FALSE]
+    Padel <- Padel[, c(1, which(names(Padel) %in% clint_padel_desc)), drop = FALSE]
+    chemlist <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
+  } else {
+    Padel <- get_padel(
+      cichem_list = chems,
+      descriptors = clint_padel_desc,
+      conn_str = conn_str
+    )
+    Opera <- get_opera(
+      cichem_list = chems,
+      descriptors = clint_opera_desc,
+      conn_str = conn_str
+    )
+    chemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
+  }
+
   msd <- clint.msd
   submsd <- msd[, which(names(msd) %in% names(chemlist))]
 
   chemlistsc <- chemlist
+  descnames <- intersect(c(clint_padel_desc, clint_opera_desc), names(chemlistsc))
   for (i in descnames) {
     sub1 <- subset(submsd, select = c(names(submsd) == i))
     chemlistsc[, i] <- (chemlist[, i] - sub1[1, 1]) / sub1[2, 1]
   }
 
-  Clintmodvars <- row.names(importance(ClintClass3Mod))
-  chemlistClintmodvars <- which(names(chemlistsc) %in% Clintmodvars)
+  chemlistClintmodvars <- which(names(chemlistsc) %in% clintmodvars)
 
   IDcolstart <- 1
   IDcolend <- 1
@@ -84,7 +139,7 @@ calc_clint <- function(chemlist, descnames, datalabel, opera_version) {
 
   SIdf <- calc_roy_ad(
     data = chemlistsc_Clint_narm,
-    model_vars = Clintmodvars
+    model_vars = clintmodvars
   )
 
   chemlistsc_Clint_narm <- data.frame(chemlistsc_Clint_narm, SIdf)
@@ -99,5 +154,5 @@ calc_clint <- function(chemlist, descnames, datalabel, opera_version) {
     )
   )
 
-  chemlistsc_Clint_narm
+  return(chemlistsc_Clint_narm)
 }

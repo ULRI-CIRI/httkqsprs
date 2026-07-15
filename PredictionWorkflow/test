@@ -5,11 +5,17 @@ devtools::install("httkqsprs")
 # load library
 library(httkqsprs)
 # create list of chemical ids
-chem.ids <- c("CICHEM010017986","CICHEM000200048","CICHEM000200014")
+chem.ids <- c("CICHEM010017986","CICHEM010028777","CICHEM010057529","CICHEM000200048","CICHEM000200014")
 #debug(generate_preds)
 # generate Clint and Fup values for the chemicals ()
 out <- generate_preds("June2026",chems=chem.ids)
 # Clint Values:
-out$Clint[,c("MoleculeID","ClintPredictBin_MD")]
+out$Clint[,c("MoleculeID","ClintPredictBin_MD","Outlier")]
 # Fup Values:
-out$Fup[,c("MoleculeID","Fup.RF.pred")]
+out$Fup[,c("MoleculeID","Fup.RF.pred","Outlier")]
+
+dbGetQuery(con, "
+SELECT COLUMN_NAME, DATA_TYPE 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'opera_pka_endpoint'
+")

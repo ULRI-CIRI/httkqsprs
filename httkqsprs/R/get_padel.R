@@ -6,7 +6,7 @@
 #' Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 #'
 #' @export get_padel
-get_padel <- function(cichem_list = chems,
+get_padel <- function(cichem_list = NULL,
                       descriptors = NULL,
                       opera_version = "2.9",    
                       conn_str = NULL)
