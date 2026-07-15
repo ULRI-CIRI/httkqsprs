@@ -2,9 +2,7 @@
 % Please edit documentation in R/generate_preds.R
 \name{generate_preds}
 \alias{generate_preds}
-\title{Generate predictions for Clint and Fup for new chemicals based on the models in Dawson et al. 2021.
-This function will read in the necessary predictors for novel chemicals, standardize the parameters of the chemical according to the training set(s), and predict Clint and Fup for those chemicals.
-The function requires OPERA model predictions and PaDEL descriptions for your chemicals of interest.}
+\title{Generate predictions for Clint, Fup, and optionally Papp}
 \usage{
 generate_preds(
   Datalabel,
@@ -13,54 +11,63 @@ generate_preds(
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   conn_str = NULL,
-  chems = NULL
+  chems = NULL,
+  papp_model = NULL,
+  papp_model_label = "LogPab3Bin"
 )
 }
 \arguments{
-\item{Datalabel}{A character string that will be used to label the output files. This should be the same as the prefix of the OPERA and PaDEL descriptor files for your chemicals of interest.}
+\item{Datalabel}{A character string used to label output files.}
 
 \item{output.path}{Optional output directory path. Defaults to \code{tempdir()}.}
 
-\item{Operaversion}{A character string that specifies the version of OPERA used.}
+\item{Operaversion}{A character string specifying the OPERA version.}
 
-\item{operapostfix}{A character string that specifies the postfix of the OPERA descriptor file for your chemicals of interest. The default is "-smi_OPERA2.9Pred.csv", which corresponds to the OPERA predictions for 200 chemicals included in this folder.}
+\item{operapostfix}{Postfix of the OPERA descriptor file when reading from
+CSV.}
 
-\item{padelpostfix}{A character string that specifies the postfix of the PaDEL descriptor file for your chemicals of interest. The default is "_QSAR-ready_smi_PadelDesc.csv", which corresponds to the PaDEL descriptors for 200 chemicals included in this folder.}
+\item{padelpostfix}{Postfix of the PaDEL descriptor file when reading from
+CSV.}
 
 \item{conn_str}{Unused placeholder for connection string compatibility.}
 
 \item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are queried via database helper functions instead of CSV files.}
+descriptors are queried via database helper functions.}
+
+\item{papp_model}{Optional fitted Caco-2 Papp classification model. If
+\code{NULL}, \code{generate_preds()} attempts to use \code{classmodopt} if available.}
+
+\item{papp_model_label}{Character scalar indicating which \code{qspr.summary}
+column to use for class-to-quantitative mapping in \code{\link[=calc_papp]{calc_papp()}}.}
 }
 \value{
 A named list with:
 \describe{
 \item{Clint}{Data frame returned by \code{\link[=calc_clint]{calc_clint()}}.}
 \item{Fup}{Data frame returned by \code{\link[=calc_fup]{calc_fup()}}.}
+\item{Papp}{Data frame returned by \code{\link[=calc_papp]{calc_papp()}} when available;
+otherwise \code{NULL}.}
 }
 }
 \description{
-OPERA predictors include:
-"LogP"   "LogWS"  "LogBCF" "LogKM"  "MP"     "LogVP"  "LogD55" "LogD74" "LogOH"
-}
-\details{
-PaDEL descriptors include:
-"CrippenLogP"       "nBase"             "XLogP"
-"ETA_EtaP_F"        "ZMIC2"             "maxHBa"            "minsssN"           "AATS1i"
-"ETA_dEpsilon_B"    "GATS1i"            "ZMIC1"             "SsssN"             "nAromBond"
-"AATSC0p"           "minHBd"            "LipoaffinityIndex" "AATS3v"            "AATS2i"
-"C2SP2"             "AATS4v"            "Kier2"             "AATS6m"            "AATS6v"
-"minssCH2"          "AATS5v"            "AATS5i"            "ATSC2c"            "ATSC6c"
-"ATSC3m"            "ATSC3e"            "AATSC0c"           "AATSC0v"           "MATS1c"
-"MATS8c"            "GATS5c"            "GATS1e"            "GATS5e"            "BCUTc.1l"         "BCUTp.1l"          "BCUTp.1h"          "nBondsM"           "SpMin2_Bhm"        "SpMax2_Bhp"
-"minHaaCH"          "minaaCH"           "IC1"               "MLFER_BH"          "piPC8"            "R_TpiPCTPC"
+This function reads OPERA and PaDEL descriptors for novel chemicals,
+standardizes and applies the Dawson et al. (2021) QSPR models to predict
+Clint and Fup, and optionally applies the Honda et al. Caco-2 QSPR to
+predict apparent permeability (Papp) when the required model object is
+provided or available in package data.
 }
 \references{
-Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput toxicokinetic models using open-source descriptors." Environmental science & technology 55.9 (2021): 6505-6517.
+Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput
+toxicokinetic models using open-source descriptors."
+\emph{Environmental Science \& Technology} 55.9 (2021): 6505-6517.
 
-Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
+Mansouri, Kamel, et al. "OPERA models for predicting physicochemical
+properties and environmental fate endpoints."
+\emph{Journal of Cheminformatics} 10.1 (2018): 10.
 
-Yap, Chun Wei. "PaDEL-descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
+Yap, Chun Wei. "PaDEL-descriptor: An open source software to calculate
+molecular descriptors and fingerprints."
+\emph{Journal of Computational Chemistry} 32.7 (2011): 1466-1474.
 }
 \author{
 John Wambaugh

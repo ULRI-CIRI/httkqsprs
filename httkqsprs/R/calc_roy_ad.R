@@ -4,6 +4,10 @@
 #' standardized descriptor values for each chemical. This method essentially 
 #' calculates a z-score for each descriptor using the mean and standard deviation
 #' of the training set.
+#' 
+#' Recall that the descriptors are all centered and scaled by the mean and standard
+#' deviation of the respective training set, so that the values passed in data are
+#' already the number of standad deviations from the mean.
 #'
 #' The function first subsets to the descriptor columns used by the model,
 #' computes absolute standardized values, and then calculates:
@@ -73,5 +77,5 @@ calc_roy_ad <- function(
     }
   }
 
-  ad_metrics
+  return(ad_metrics)
 }

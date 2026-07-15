@@ -26,45 +26,49 @@
 
 # These sets are included in the file "CombinedDescriptors_DED050621.RData", included in this folder.
 
-#' Generate predictions for Clint and Fup for new chemicals based on the models in Dawson et al. 2021.
-#' This function will read in the necessary predictors for novel chemicals, standardize the parameters of the chemical according to the training set(s), and predict Clint and Fup for those chemicals.
-#' The function requires OPERA model predictions and PaDEL descriptions for your chemicals of interest.
+#' Generate predictions for Clint, Fup, and optionally Papp
 #'
-#' OPERA predictors include:
-#' "LogP"   "LogWS"  "LogBCF" "LogKM"  "MP"     "LogVP"  "LogD55" "LogD74" "LogOH"
+#' This function orchestrates Clint, Fup, and optional Papp prediction
+#' workflows. Descriptor retrieval is delegated to [calc_clint()],
+#' [calc_fup()], and [calc_papp()] so each workflow requests only the
+#' descriptors it needs.
 #'
-#' PaDEL descriptors include:
-#' "CrippenLogP"       "nBase"             "XLogP"
-#' "ETA_EtaP_F"        "ZMIC2"             "maxHBa"            "minsssN"           "AATS1i"
-#' "ETA_dEpsilon_B"    "GATS1i"            "ZMIC1"             "SsssN"             "nAromBond"
-#' "AATSC0p"           "minHBd"            "LipoaffinityIndex" "AATS3v"            "AATS2i"
-#' "C2SP2"             "AATS4v"            "Kier2"             "AATS6m"            "AATS6v"
-#' "minssCH2"          "AATS5v"            "AATS5i"            "ATSC2c"            "ATSC6c"
-#' "ATSC3m"            "ATSC3e"            "AATSC0c"           "AATSC0v"           "MATS1c"
-#' "MATS8c"            "GATS5c"            "GATS1e"            "GATS5e"            "BCUTc.1l"         "BCUTp.1l"          "BCUTp.1h"          "nBondsM"           "SpMin2_Bhm"        "SpMax2_Bhp"
-#' "minHaaCH"          "minaaCH"           "IC1"               "MLFER_BH"          "piPC8"            "R_TpiPCTPC"
-#'
-#' @param Datalabel A character string that will be used to label the output files. This should be the same as the prefix of the OPERA and PaDEL descriptor files for your chemicals of interest.
+#' @param Datalabel A character string used to label output files.
 #' @param output.path Optional output directory path. Defaults to `tempdir()`.
-#' @param Operaversion A character string that specifies the version of OPERA used.
-#' @param operapostfix A character string that specifies the postfix of the OPERA descriptor file for your chemicals of interest. The default is "-smi_OPERA2.9Pred.csv", which corresponds to the OPERA predictions for 200 chemicals included in this folder.
-#' @param padelpostfix A character string that specifies the postfix of the PaDEL descriptor file for your chemicals of interest. The default is "_QSAR-ready_smi_PadelDesc.csv", which corresponds to the PaDEL descriptors for 200 chemicals included in this folder.
-#' @param conn_str Unused placeholder for connection string compatibility.
+#' @param Operaversion A character string specifying the OPERA version.
+#' @param operapostfix Postfix of the OPERA descriptor file when reading from
+#'   CSV.
+#' @param padelpostfix Postfix of the PaDEL descriptor file when reading from
+#'   CSV.
+#' @param conn_str Optional PostgreSQL connection string for descriptor
+#'   retrieval when `chems` is provided.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
-#'   descriptors are queried via database helper functions instead of CSV files.
+#'   descriptors are queried via database helper functions.
+#' @param papp_model Optional fitted Caco-2 Papp classification model. If
+#'   `NULL`, `generate_preds()` attempts to use `classmodopt` if available.
+#' @param papp_model_label Character scalar indicating which `qspr.summary`
+#'   column to use for class-to-quantitative mapping in [calc_papp()].
 #'
 #' @return A named list with:
 #' \describe{
 #'   \item{Clint}{Data frame returned by [calc_clint()].}
 #'   \item{Fup}{Data frame returned by [calc_fup()].}
+#'   \item{Papp}{Data frame returned by [calc_papp()] when available;
+#'   otherwise `NULL`.}
 #' }
 #'
 #' @references
-#' Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput toxicokinetic models using open-source descriptors." Environmental science & technology 55.9 (2021): 6505-6517.
+#' Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput
+#' toxicokinetic models using open-source descriptors."
+#' \emph{Environmental Science \& Technology} 55.9 (2021): 6505-6517.
 #'
-#' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
+#' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical
+#' properties and environmental fate endpoints."
+#' \emph{Journal of Cheminformatics} 10.1 (2018): 10.
 #'
-#' Yap, Chun Wei. "PaDEL-descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
+#' Yap, Chun Wei. "PaDEL-descriptor: An open source software to calculate
+#' molecular descriptors and fingerprints."
+#' \emph{Journal of Computational Chemistry} 32.7 (2011): 1466-1474.
 #'
 #' @author John Wambaugh
 #'
@@ -81,49 +85,46 @@ generate_preds <- function(
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   conn_str = NULL,
-  chems = NULL
+  chems = NULL,
+  papp_model = NULL,
+  papp_model_label = "LogPab3Bin"
 ) {
   if (is.null(output.path)) {
     output.path <- tempdir()
   }
 
-  Descriptors <- httkqsprs::Descriptors
-  Descriptors$Opera <- paste0(Descriptors$Opera, "_pred")
-
-  if (is.null(chems)) {
-    NEWOPERA <- paste0(Datalabel, operapostfix)
-    NEWPADEL <- paste0(Datalabel, padelpostfix)
-
-    Opera <- read.csv(NEWOPERA)
-    Padel <- read.csv(NEWPADEL)
-
-    Opera <- Opera[, c(1, which(names(Opera) %in% Descriptors$Opera))]
-    Padel <- Padel[, c(1, which(names(Padel) %in% Descriptors$Padel))]
-    chemlist <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
-  } else {
-    Padel <- get_padel(cichem_list = chems, descriptors = Descriptors$Padel)
-    Opera <- get_opera(cichem_list = chems, descriptors = Descriptors$Opera)
-    chemlist <- cbind(Padel, Opera)
-  }
-
-  desccols <- which(names(chemlist) %in% Descriptors$Padel | names(chemlist) %in% Descriptors$Opera)
-  descnames <- names(chemlist)[desccols]
-
   clint <- calc_clint(
-    chemlist = chemlist,
-    descnames = descnames,
     datalabel = Datalabel,
-    opera_version = Operaversion
+    opera_version = Operaversion,
+    chems = chems,
+    operapostfix = operapostfix,
+    padelpostfix = padelpostfix,
+    conn_str = conn_str
   )
 
   fup <- calc_fup(
-    chemlist = chemlist,
     datalabel = Datalabel,
-    opera_version = Operaversion
+    opera_version = Operaversion,
+    chems = chems,
+    operapostfix = operapostfix,
+    padelpostfix = padelpostfix,
+    conn_str = conn_str
   )
 
-  list(
-    Clint = clint,
-    Fup = fup
+  papp <- calc_papp(
+    datalabel = Datalabel,
+    opera_version = Operaversion,
+    chems = chems,
+    operapostfix = operapostfix,
+    padelpostfix = padelpostfix,
+    conn_str = conn_str,
+    class_model = papp_model,
+    model_label = papp_model_label
   )
+
+  return(list(
+    Clint = clint,
+    Fup = fup,
+    Papp = papp
+  ))
 }

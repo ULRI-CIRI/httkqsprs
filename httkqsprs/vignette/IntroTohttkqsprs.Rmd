@@ -1,0 +1,126 @@
+---
+title: "Introduction to httkqsprs"
+author: "John Wambaugh and Andy Shapiro"
+date: "July 15, 2026"
+output: rmarkdown::html_vignette
+vignette: >
+ %\VignetteIndexEntry{Introduction to httkqsprs}
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteEncoding{UTF-8}
+---
+*Please send questions to John.Wambaugh@UL.org*
+
+### Set vignette options
+R package **knitr** generates html and PDF documents from this RMarkdown file,
+Each bit of code that follows is known as a "chunk". We start by telling 
+**knitr** how we want our chunks to look.
+```{r setup_vignette, eval = TRUE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=5, fig.height=4)
+```
+
+## Description
+
+High throughput toxicokinetics ("HTTK") is the 
+combination of in vitro TK data and generic mathematical models to
+predict absorption, distribution, metabolism, and excretion by the
+body, as decribed by [Pearce et al. (2017)](https://doi.org/10.18637/jss.v079.i04) and 
+[Breen et al. (2021)](https://doi.org/10.1080/17425255.2021.1935867).
+Chemical-specific in vitro TK data are available for only a few thousand
+chemicals. [Dawson et al. (2021)](https://doi.org/10.1021/acs.est.0c06117) and 
+[Honda et al. (2025)](https://doi.org/10.1021/10.14573/altex.2403271)
+developed a series of random forest Quantitative Structure-Property Relationship (QSPR)
+models to predict these parameters for a broader set of chemicals.
+The QSPR models require structure-derived chemical-specific descriptors from 
+[Padel](https://doi.org/10.1002/jcc.21707) and [OPERA](https://doi.org/10.1186/s13321-018-0263-1).
+Assuming the user can generate these descriptors, or has access to a database of pre-generated
+descriptors, then this package can be used to calculate the HTTK parameter Clint (inrinsic hepatic clearance),
+fup (fraction unbound in plasma), and Papp (apparent membrane permeability in a Caco-2 experiment).
+
+## Getting Started
+
+For an introduction to R, see Irizarry (2022) "Introduction to Data Science": 
+<http://rafalab.dfci.harvard.edu/dsbook/getting-started.html>
+
+For an introduction to toxicokinetics, with examples in "httk", see Ring (2021) in the "TAME Toolkit":
+<https://uncsrp.github.io/Data-Analysis-Training-Modules/toxicokinetic-modeling.html>
+
+### Dependencies
+
+* Users will need the freely available R statistical computing language: <https://www.r-project.org/>
+* Users will likely want a development environment like RStudio: <https://posit.co/download/rstudio-desktop/>
+* If you get the message "Error in library(X) : there is no package called 'X'" then you will need to install that package: 
+	From the R command prompt: install.packages("X") 
+  Or, if using RStudio, look for 'Install Packages' under the 'Tools' tab.
+* Note that R does not recognize fancy versions of quotation marks that curve
+toward each other. 
+If you are cutting and pasting from software like Word or Outlook you may need 
+to replace the quotation marks that curve toward each other with ones typed by 
+the keyboard.
+
+### Installing R package "httk"
+```{r install_httk, eval = FALSE}
+install.packages("httkqsprs")
+```
+
+### “Write Privileges” On Your Personal Computer.
+```{r write_privileges, eval = FALSE}
+ Depending on the account you are using and where you want to install the package on that computer, you may need “permission” from your local file system to install the package. See this help here:
+
+<https://stackoverflow.com/questions/42807247/installing-package-cannot-open-file-permission-denied>
+
+and here:
+
+<https://support.microsoft.com/en-us/topic/general-problem-installing-any-r-package-0bf1f9ba-ead2-6335-46ec-190f6af75e44>
+```
+
+### Delete all objects from memory:
+It is a bad idea to let variables and other information from previous R
+sessions float around, so we first remove everything in the R memory.
+```{r clear_memory, eval = TRUE}
+rm(list=ls())
+```
+
+### Load the HTTK data, models, and functions
+```{r load_httk, eval = TRUE}
+library(httkqsprs)
+
+# Check what version you are using 
+packageVersion("httkqsprs")
+```
+
+## Examples
+
+* Retrieve Padel and OPERA descriptors from internal Chemical Insights database
+```{r make predictions, eval = TRUE}
+# create list of chemical ids
+chem.ids <- c("CICHEM010017986","CICHEM000200048","CICHEM000200014")
+#debug(generate_preds)
+# generate Clint and Fup values for the chemicals ()
+out <- generate_preds("June2026",chems=chem.ids)
+# Clint Values:
+out$Clint[,c("MoleculeID","ClintPredictBin_MD")]
+# Fup Values:
+out$Fup[,c("MoleculeID","Fup.RF.pred")]
+```
+
+## Help
+
+* Getting help with R Package httk 
+```{r help1, eval = FALSE}
+help(httk)
+```
+
+* You can go straight to the index: 
+```{r help2, eval = FALSE}
+help(package = httk)
+```
+
+* List all vignettes for httk 
+```{r help3, eval = FALSE}
+vignette(package = "httk")
+```
+
+* Displays the vignette for a specified vignette 
+```{r help4, eval = FALSE}
+vignette("1_IntroToHTTK")
+```

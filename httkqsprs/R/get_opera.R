@@ -6,36 +6,12 @@
 #' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
 #' 
 #' @export get_opera
-get_opera <- function(cichem_list = chems,
+get_opera <- function(cichem_list = NULL,
                       descriptors = NULL,
                       opera_version = "2.9", 
                       conn_str = NULL)
 {
-  if (is.null(conn_str)) {
-    if (exists("PIPELINES_CONN_STR")) conn_str <- PIPELINES_CONN_STR
-    else conn_str <- Sys.getenv("PIPELINES_CONN_STR")
-  } 
-  # Code from Andy Shapiro:
-  if (nchar(conn_str) == 0) stop("PIPELINES_CONN_STR is not set")
-
-  uri   <- httr::parse_url(conn_str)  # parse URI components without httr if preferred
-  # Pure-base alternative using regex:
-  m <- regmatches(conn_str, regexpr(
-    "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)", conn_str, perl = TRUE
-  ))
-  parts <- regmatches(conn_str, regexec(
-    "postgres://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)", conn_str, perl = TRUE
-  ))[[1]]
-
-  con <- dbConnect(
-    RPostgres::Postgres(),
-    user     = parts[2],
-    password = parts[3],
-    host     = parts[4],
-    port     = if (nchar(parts[5]) > 0) as.integer(parts[5]) else 5432L,
-    dbname   = parts[6]
-  )
-  on.exit(dbDisconnect(con), add = TRUE)
+  conn <- pg_connection_from_env('PIPELINES_CONN_STR')
 
   # ── Parameters ────────────────────────────────────────────────────────────────
   # parameters are set by call to function
@@ -43,25 +19,38 @@ get_opera <- function(cichem_list = chems,
 
 # Convert names as given by OPERA Excel output into SQL names:
 Opera.SQL.names <- paste0("opera_",
-  gsub("_pred","",tolower(Descriptors$Opera)),
+  gsub("_pred","",tolower(column_names)),
   "_endpoint") 
+# Make the names of the tables match the database:
 Opera.SQL.names <- gsub("logws","ws", Opera.SQL.names)
 Opera.SQL.names <- gsub("logbcf","bcf", Opera.SQL.names)
 Opera.SQL.names <- gsub("logkm","km", Opera.SQL.names)
 Opera.SQL.names <- gsub("logvp","vp", Opera.SQL.names)
 Opera.SQL.names <- gsub("logoh","aoh", Opera.SQL.names)
 Opera.SQL.suffix <- rep("prediction",length(Opera.SQL.names))
+# Make the names of the columns match the database:
 Opera.SQL.suffix[regexpr("logd55", Opera.SQL.names)!=-1] <- "logd55"
 Opera.SQL.suffix[regexpr("logd74", Opera.SQL.names)!=-1] <- "logd74"
+Opera.SQL.suffix[regexpr("pka_a", Opera.SQL.names)!=-1] <- "pka_a"
+Opera.SQL.suffix[regexpr("pka_b", Opera.SQL.names)!=-1] <- "pka_b"
+# Can't change this until we have identified the columns:
 Opera.SQL.names <- gsub("logd55","logd", Opera.SQL.names)
 Opera.SQL.names <- gsub("logd74","logd", Opera.SQL.names)
+Opera.SQL.names <- gsub("pka_a","pka", Opera.SQL.names)
+Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
 
   # ── Build SQL Query ─────────────────────────
-  var.names <- paste0('"',paste0(Opera.SQL.names,'"."',Opera.SQL.suffix,collapse='",\n"'),'"\n')
-  chem.names <- paste0("'", paste0(cichem_list, collapse="', '"), "'")
+  var.names <- paste0('\"',
+    paste0(Opera.SQL.names,
+      '\".\"',
+      Opera.SQL.suffix,
+      collapse='\",\n\"'),
+    '\"\n')
 
-  opera_query <- paste0('
-SELECT "chemical_identifier"."cichem" AS "cichem", ', var.names, '
+  Opera <- try(pg_query(
+  conn, paste0('
+  SELECT "chemical_identifier"."cichem" AS "cichem", ', 
+  var.names, '
   FROM "opera_prediction_molecule"
   LEFT OUTER JOIN "chemical_identifier" 
     ON ("opera_prediction_molecule"."inchikey" = "chemical_identifier"."inchikey")
@@ -105,19 +94,17 @@ SELECT "chemical_identifier"."cichem" AS "cichem", ', var.names, '
     ON ("opera_prediction_molecule"."id" = "opera_pka_endpoint"."molecule_id")
   LEFT OUTER JOIN "opera_catmos_endpoint"
     ON ("opera_prediction_molecule"."id" = "opera_catmos_endpoint"."molecule_id")
- WHERE "chemical_identifier"."cichem" = ANY(ARRAY[',
-  chem.names, ']) AND 
-    "opera_prediction_molecule"."opera_version" = ', paste0("'",opera_version,"'"), '
- ORDER BY "opera_prediction_molecule"."opera_version" DESC
-')
+ WHERE "chemical_identifier"."cichem" IN (?cichems) AND 
+    "opera_prediction_molecule"."opera_version" = \'',
+    opera_version, '\'
+ ORDER BY "opera_prediction_molecule"."opera_version" DESC'),
+  schema = "public",
+  cichems = pg_escape_vector(cichem_list)
+  ))
 
-
-  # ── Call the stored procedure ─────────────────────────────────────────────────
-
-  Opera <- try(dbGetQuery(con, opera_query))
   colnames(Opera) <- c("MoleculeID",descriptors)
 
   rownames(Opera) <- Opera$MoleculeID
 
-  return (Opera)
+  return(Opera)
 }
