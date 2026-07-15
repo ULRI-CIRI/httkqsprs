@@ -166,6 +166,10 @@ generate_preds <- function(
   chemlistsc_Clint_narm$ClintPredictBin_SD=ifelse(chemlistsc_Clint_narm$ClintPredictBin==1, tsdagtable[1,2], ifelse(
                                                   chemlistsc_Clint_narm$ClintPredictBin==2, tsdagtable[2,2] ,tsdagtable[3,2]))
 
+  # Set reasonable significant figures for Clint predictions:
+  chemlistsc_Clint_narm$ClintPredictBin_MD=signif(chemlistsc_Clint_narm$ClintPredictBin_MD, digits=3)
+  chemlistsc_Clint_narm$ClintPredictBin_SD=signif(chemlistsc_Clint_narm$ClintPredictBin_SD, digits=3)
+  
   ## Apply applicability domain 
   # Using methodology of Roy et al 2015, apply applicability domain of Clint model to predictions of new chemicals and export
 
@@ -227,6 +231,9 @@ generate_preds <- function(
   set.seed(1255)
   chemlistpredictfup=predict(RF.fit,chemlistsc_fup_narm)
   chemlistsc_fup_narm$Fup.RF.pred=chemlistpredictfup^2 #square-root transformation applied to model results. 
+
+  # Set reasonable significant figures for fup predictions.
+  chemlistsc_fup_narm$Fup.RF.pred=signif(chemlistsc_fup_narm$Fup.RF.pred, digits=3)
 
   ### Apply applicability domain 
   # Using methodology of Roy et al 2015, apply applicability domain of fup model to predictions of new chemicals and export
