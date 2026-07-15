@@ -40,8 +40,6 @@
 #'   CSV.
 #' @param padelpostfix Postfix of the PaDEL descriptor file when reading from
 #'   CSV.
-#' @param conn_str Optional PostgreSQL connection string for descriptor
-#'   retrieval when `chems` is provided.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
 #'   descriptors are queried via database helper functions.
 #' @param papp_model Optional fitted Caco-2 Papp classification model. If
@@ -84,7 +82,6 @@ generate_preds <- function(
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  conn_str = NULL,
   chems = NULL,
   papp_model = NULL,
   papp_model_label = "LogPab3Bin"
@@ -98,8 +95,7 @@ generate_preds <- function(
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    conn_str = conn_str
+    padelpostfix = padelpostfix
   )
 
   fup <- calc_fup(
@@ -107,19 +103,15 @@ generate_preds <- function(
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    conn_str = conn_str
-  )
+    padelpostfix = padelpostfix
+    )
 
   papp <- calc_papp(
     datalabel = Datalabel,
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    conn_str = conn_str,
-    class_model = papp_model,
-    model_label = papp_model_label
+    padelpostfix = padelpostfix
   )
 
   return(list(

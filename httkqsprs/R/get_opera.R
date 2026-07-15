@@ -8,9 +8,11 @@
 #' @export get_opera
 get_opera <- function(cichem_list = NULL,
                       descriptors = NULL,
-                      opera_version = "2.9", 
-                      conn_str = NULL)
+                      opera_version = "2.9")
 {
+  if (nchar(Sys.getenv("PIPELINES_CONN_STR")) == 0) 
+    stop("Environmental variable PIPELINES_CONN_STR is not set")
+  
   conn <- pg_connection_from_env('PIPELINES_CONN_STR')
 
   # ── Parameters ────────────────────────────────────────────────────────────────

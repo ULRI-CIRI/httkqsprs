@@ -18,12 +18,6 @@
 #'   `chems` is `NULL`.
 #' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
 #'   `chems` is `NULL`.
-#' @param conn_str Optional PostgreSQL connection string used by descriptor
-#'   retrieval helpers when `chems` is provided.
-#' @param class_model Optional fitted classification model object. Defaults to
-#'   `classmodopt` if available in scope.
-#' @param model_label Character scalar naming the `qspr.summary` column used to
-#'   map class bins to quantitative summary strings. Default is `"LogPab3Bin"`.
 #'
 #' @return A data frame with one row per chemical and columns:
 #'
@@ -65,29 +59,8 @@ calc_papp <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  conn_str = NULL,
-  class_model = NULL,
-  model_label = "LogPab3Bin"
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
 ) {
-  if (is.null(class_model)) {
-    if (exists("classmodopt", inherits = TRUE)) {
-      class_model <- get("classmodopt", inherits = TRUE)
-    } else {
-      stop("class_model is NULL and object 'classmodopt' was not found.")
-    }
-  }
-
-  if (!exists("opt.desc", inherits = TRUE)) {
-    stop("Required data object 'opt.desc' was not found.")
-  }
-  if (!exists("train_msd", inherits = TRUE)) {
-    stop("Required data object 'train_msd' was not found.")
-  }
-  if (!exists("qspr.summary", inherits = TRUE)) {
-    stop("Required data object 'qspr.summary' was not found.")
-  }
-
   opt_desc <- get("opt.desc", inherits = TRUE)
   train_msd_local <- get("train_msd", inherits = TRUE)
   qspr_summary_local <- get("qspr.summary", inherits = TRUE)
@@ -123,13 +96,11 @@ calc_papp <- function(
   } else {
     Padel <- get_padel(
       cichem_list = chems,
-      descriptors = papp_padel_desc,
-      conn_str = conn_str
+      descriptors = papp_padel_desc
     )
     Opera <- get_opera(
       cichem_list = chems,
-      descriptors = papp_opera_desc,
-      conn_str = conn_str
+      descriptors = papp_opera_desc
     )
     papp_df <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }
