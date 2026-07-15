@@ -15,8 +15,6 @@
 #'   `chems` is `NULL`.
 #' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
 #'   `chems` is `NULL`.
-#' @param conn_str Optional PostgreSQL connection string used by descriptor
-#'   retrieval helpers when `chems` is provided.
 #'
 #' @return Data frame of complete-case Clint predictions with columns for
 #'   `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and
@@ -51,8 +49,7 @@ calc_clint <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  conn_str = NULL
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
 ) {
   Descriptors <- httkqsprs::Descriptors
   opera_desc_all <- paste0(Descriptors$Opera, "_pred")
@@ -84,13 +81,11 @@ calc_clint <- function(
   } else {
     Padel <- get_padel(
       cichem_list = chems,
-      descriptors = clint_padel_desc,
-      conn_str = conn_str
+      descriptors = clint_padel_desc
     )
     Opera <- get_opera(
       cichem_list = chems,
-      descriptors = clint_opera_desc,
-      conn_str = conn_str
+      descriptors = clint_opera_desc
     )
     chemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }

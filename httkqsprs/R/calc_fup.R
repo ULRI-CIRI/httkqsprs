@@ -50,8 +50,7 @@ calc_fup <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  conn_str = NULL
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
 ) {
   fupmodvars <- row.names(RF.fit$importance)
   msd <- fup.msd
@@ -92,13 +91,11 @@ calc_fup <- function(
   } else {
     Padel <- get_padel(
       cichem_list = chems,
-      descriptors = fup_padel_base,
-      conn_str = conn_str
+      descriptors = fup_padel_base
     )
     Opera <- get_opera(
       cichem_list = chems,
-      descriptors = fup_opera_desc,
-      conn_str = conn_str
+      descriptors = fup_opera_desc
     )
     fupchemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }
