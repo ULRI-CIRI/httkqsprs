@@ -43,7 +43,7 @@
 #' high-throughput toxicokinetic models using open-source descriptors.
 #' \emph{Environmental Science \& Technology}, 55(9), 6505-6517.
 #'
-#' @keywords internal
+#' @export calc_clint
 calc_clint <- function(
   datalabel,
   opera_version,
@@ -90,6 +90,7 @@ calc_clint <- function(
     chemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }
 
+  # Standardize descriptors using means/SDs from training data
   msd <- clint.msd
   submsd <- msd[, which(names(msd) %in% names(chemlist))]
 
@@ -102,6 +103,7 @@ calc_clint <- function(
 
   chemlistClintmodvars <- which(names(chemlistsc) %in% clintmodvars)
 
+  # Restrict to only the columns required for the Clint model
   IDcolstart <- 1
   IDcolend <- 1
   chemlistsc_Clint <- chemlistsc[, c(IDcolstart:IDcolend, chemlistClintmodvars)]
