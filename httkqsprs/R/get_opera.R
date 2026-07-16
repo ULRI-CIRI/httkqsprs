@@ -105,14 +105,14 @@ Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
  ORDER BY "opera_prediction_molecule"."opera_version" DESC
  ', var.names)
 
-Opera <- try(pg_query(
+Opera <- try(as.data.frame(pg_query(
     conn,
     query,
     schema = "public",
     opera_version = opera_version,
     cichems = pg_escape_vector(cichem_list)
     )
-  )
+  ))
 
   colnames(Opera) <- c("MoleculeID",descriptors)
 

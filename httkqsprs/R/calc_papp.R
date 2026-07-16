@@ -53,7 +53,7 @@
 #' determining applicability domain of QSAR models.
 #' \emph{Chemometrics and Intelligent Laboratory Systems}, 145, 22-29.
 #'
-#' @keywords internal
+#' @export calc_papp
 calc_papp <- function(
   datalabel,
   opera_version,
@@ -65,13 +65,10 @@ calc_papp <- function(
   train_msd_local <- get("train_msd", inherits = TRUE)
   qspr_summary_local <- get("qspr.summary", inherits = TRUE)
 
-  if (!(model_label %in% names(qspr_summary_local))) {
-    stop("model_label not found in qspr.summary.")
-  }
-
+  # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
   papp_opera_desc <- unique(c(grep("_pred$", opt_desc, value = TRUE), "pKa_a_pred", "pKa_b_pred"))
-  papp_padel_desc <- setdiff(opt_desc, papp_opera_desc)
-  papp_mod_vars <- c(papp_opera_desc, papp_padel_desc)
+  papp_padel_desc <- setdiff(opt_desc, c("fraction_neutral",papp_opera_desc))
+  papp_mod_vars <- c(papp_opera_desc, papp_padel_desc, "fraction neutral")
 
   if (is.null(chems)) {
     NEWOPERA <- paste0(datalabel, operapostfix)
@@ -105,6 +102,7 @@ calc_papp <- function(
     papp_df <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }
 
+  # Calculate fraction_neutral from pKa if available
   if (all(c("pKa_a_pred", "pKa_b_pred") %in% names(papp_df))) {
     ion_list <- lapply(seq_len(nrow(papp_df)), function(i) {
       httk::calc_ionization(
@@ -122,20 +120,24 @@ calc_papp <- function(
     }
   }
 
-  missing_cols <- setdiff(opt_desc, names(papp_df))
-  for (nm in missing_cols) {
-    papp_df[[nm]] <- NA_real_
-  }
-
+  # Restrict to only the columns required for the Papp model
   papp_desc <- papp_df[, opt_desc, drop = FALSE]
 
+  # Standardize descriptors using means/SDs from training data
   for (this_col in opt_desc) {
     if (is.numeric(train_msd_local[1, this_col])) {
-      papp_desc[is.na(papp_desc[, this_col]), this_col] <- train_msd_local[1, this_col]
+      papp_desc[, this_col] <- 
+        (papp_desc[, this_col] - 
+        train_msd_local[1, this_col]) /
+        train_msd_local[2, this_col]
     }
   }
 
-  pred <- predict(class_model, papp_desc)
+  # Assign NA values the mean (0 after standardization) for any missing descriptors:
+  papp_desc[is.na(papp_desc)] <- 0
+
+  browser()
+  pred <- predict(classmodopt, papp_desc)
 
   ad <- calc_roy_ad(
     data = papp_desc,
@@ -150,7 +152,7 @@ calc_papp <- function(
   )
 
   for (this_bin in sort(as.character(unique(papp_pred$Pab.Class.Pred)))) {
-    bin_value <- qspr_summary_local[paste0("Bin", this_bin), model_label]
+    bin_value <- qspr_summary_local[paste0("Bin", this_bin), "LogPab3Bin"]
     bin_value <- gsub(" \\(", ",", bin_value)
     bin_value <- gsub(" - ", ",", bin_value)
     bin_value <- gsub("\\)", "", bin_value)

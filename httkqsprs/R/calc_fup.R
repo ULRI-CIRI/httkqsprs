@@ -44,7 +44,7 @@
 #' high-throughput toxicokinetic models using open-source descriptors.
 #' \emph{Environmental Science \& Technology}, 55(9), 6505-6517.
 #'
-#' @keywords internal
+#' @export calc_fup
 calc_fup <- function(
   datalabel,
   opera_version,
@@ -114,11 +114,13 @@ calc_fup <- function(
     names(fupchemlist)[i] <- paste0("Opera_", names(fupchemlist)[i])
   }
 
+  # Restrict to only the columns required for the Fup model
   chemlistfupmodvars <- which(names(fupchemlist) %in% fupmodvars)
   IDcolstart <- 1
   IDcolend <- 1
   fupchemlist <- fupchemlist[, c(IDcolstart:IDcolend, chemlistfupmodvars)]
 
+  # Standardize descriptors using means/SDs from training data
   chemlistfupsc <- fupchemlist
   for (i in fupmodvars) {
     sub1 <- subset(msd, select = c(names(msd) == i))
