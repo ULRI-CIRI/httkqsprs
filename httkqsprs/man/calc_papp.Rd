@@ -5,27 +5,35 @@
 \title{Calculate Caco-2 apparent permeability (Papp) predictions}
 \usage{
 calc_papp(
-  chemlist,
   datalabel,
   opera_version,
-  class_model = NULL,
-  model_label = "LogPab3Bin"
+  chems = NULL,
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
 )
 }
 \arguments{
-\item{chemlist}{A data frame of input chemicals and descriptors. The first
-column is treated as the chemical identifier (typically \code{MoleculeID} or
-\code{DTXSID}).}
-
 \item{datalabel}{Character scalar used in output filenames.}
 
 \item{opera_version}{Character scalar used in output filenames.}
 
-\item{class_model}{Optional fitted classification model object. Defaults to
-\code{classmodopt} if available in scope.}
+\item{chems}{Optional character vector of CICHEM identifiers. If provided,
+descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
+\code{\link[=get_opera]{get_opera()}}.}
 
-\item{model_label}{Character scalar naming the \code{qspr.summary} column used to
-map class bins to quantitative summary strings. Default is \code{"LogPab3Bin"}.}
+\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
+Defaults to \code{\link{getwd}}.}
+
+\item{output.folder}{The folder where the output file is placed.
+Defaults to \code{\link{tempdir}}.}
 }
 \value{
 A data frame with one row per chemical and columns:
@@ -37,11 +45,10 @@ A data frame with one row per chemical and columns:
 }
 }
 \description{
-Generates apparent Caco-2 membrane permeability predictions from the Honda
-et al. workflow by: (1) preparing the required descriptor set,
-(2) imputing missing descriptors with training-set means,
-(3) calculating Roy et al. applicability domain status, and
-(4) predicting a Papp class with the optimal random forest model.
+Retrieves only the descriptors required by the Papp model workflow,
+imputes missing descriptors with training-set means, calculates Roy et al.
+applicability domain status, and predicts a Papp class with the selected
+random forest model.
 }
 \details{
 The function also maps predicted bins to summary quantitative ranges in
@@ -49,8 +56,8 @@ The function also maps predicted bins to summary quantitative ranges in
 \code{"median,lower,upper"}.
 
 Required descriptor names are taken from \code{opt.desc} and expected training-set
-means/SDs from \code{train_msd}. If a required descriptor is absent in \code{chemlist},
-it is created as \code{NA} and then imputed from \code{train_msd} (row 1 means),
+means/SDs from \code{train_msd}. If a required descriptor is absent in retrieved
+inputs, it is created as \code{NA} and then imputed from \code{train_msd} (row 1 means),
 matching the original workflow behavior.
 
 If \code{pKa_a_pred} and \code{pKa_b_pred} are present, \code{fraction_neutral} is
@@ -76,4 +83,3 @@ determining applicability domain of QSAR models.
 \author{
 Greg Honda and John Wambaugh
 }
-\keyword{internal}

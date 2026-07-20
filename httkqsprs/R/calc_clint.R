@@ -15,6 +15,10 @@
 #'   `chems` is `NULL`.
 #' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
 #'   `chems` is `NULL`.
+#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
+#'   Defaults to \code{\link{getwd}}.
+#' @param output.folder The folder where the output file is placed.
+#'   Defaults to \code{\link{tempdir}}.
 #'
 #' @return Data frame of complete-case Clint predictions with columns for
 #'   `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and
@@ -49,8 +53,11 @@ calc_clint <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
-) {
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
+  )
+{
   Descriptors <- httkqsprs::Descriptors
   opera_desc_all <- paste0(Descriptors$Opera, "_pred")
   clintmodvars <- row.names(importance(ClintClass3Mod))
@@ -59,8 +66,8 @@ calc_clint <- function(
   clint_padel_desc <- intersect(Descriptors$Padel, clintmodvars)
 
   if (is.null(chems)) {
-    NEWOPERA <- paste0(datalabel, operapostfix)
-    NEWPADEL <- paste0(datalabel, padelpostfix)
+    NEWOPERA <- paste0(input.folder, "/", datalabel, operapostfix)
+    NEWPADEL <- paste0(input.folder, "/", datalabel, padelpostfix)
 
     Opera <- read.csv(NEWOPERA)
     Padel <- read.csv(NEWPADEL)
@@ -113,7 +120,10 @@ calc_clint <- function(
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
   write.csv(
     IncompleteClint,
-    file = paste0("Incomplete_Opera_PaDEL_Clint_predictions_", datalabel, ".csv")
+    file = paste0(output.folder,
+                  "Incomplete_Opera_PaDEL_Clint_predictions_",
+                  datalabel,
+                  ".csv")
   )
 
   set.seed(1255)
@@ -140,16 +150,19 @@ calc_clint <- function(
   )
 
   chemlistsc_Clint_narm <- data.frame(chemlistsc_Clint_narm, SIdf)
+  output.file <- paste0(
+    output.folder,
+    "Novel_clint_predictions_with_AD_",
+    datalabel,
+    "_descs_from_OPERA",
+    opera_version,
+    ".csv"
+    )
   write.csv(
     chemlistsc_Clint_narm,
-    file = paste0(
-      "Novel_clint_predictions_with_AD_",
-      datalabel,
-      "_descs_from_OPERA",
-      opera_version,
-      ".csv"
+    file = output.file
     )
-  )
+  cat("Clint preditions written to", output.file,"\n")
 
   return(chemlistsc_Clint_narm)
 }

@@ -4,16 +4,39 @@
 \alias{calc_fup}
 \title{Calculate Fup predictions and Roy AD metrics}
 \usage{
-calc_fup(chemlist, datalabel, opera_version)
+calc_fup(
+  datalabel,
+  opera_version,
+  chems = NULL,
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
+)
 }
 \arguments{
-\item{chemlist}{Data frame of input chemicals and descriptors. The first
-column is treated as an identifier and descriptor columns are transformed
-and matched to Fup model requirements.}
-
 \item{datalabel}{Character scalar used in output filenames.}
 
 \item{opera_version}{Character scalar used in output filenames.}
+
+\item{chems}{Optional character vector of CICHEM identifiers. If provided,
+descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
+\code{\link[=get_opera]{get_opera()}}.}
+
+\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
+Defaults to \code{\link{getwd}}.}
+
+\item{output.folder}{The folder where the output file is placed.
+Defaults to \code{\link{tempdir}}.}
+
+\item{conn_str}{Optional PostgreSQL connection string used by descriptor
+retrieval helpers when \code{chems} is provided.}
 }
 \value{
 Data frame of complete-case Fup predictions with columns for
@@ -21,15 +44,17 @@ Data frame of complete-case Fup predictions with columns for
 \code{SI90}, \code{Outlier}).
 }
 \description{
-Harmonizes descriptor names to match the Fup model conventions, standardizes
-Fup model inputs, predicts transformed Fup, back-transforms predictions,
-computes Roy et al. applicability-domain metrics, and writes Fup output CSV
-files.
+Retrieves only the descriptors required by the Fup model, harmonizes
+descriptor names to match the Fup model conventions, standardizes model
+inputs, predicts transformed Fup, back-transforms predictions, computes Roy
+et al. applicability-domain metrics, and writes Fup output CSV files.
 }
 \details{
 Workflow:
 \enumerate{
 \item Derive model variables from \code{RF.fit$importance}.
+\item Retrieve only required OPERA and PaDEL descriptors from CSV files or
+database helpers.
 \item Prefix matching PaDEL descriptors with \code{padel_} and OPERA
 descriptors with \code{Opera_}.
 \item Restrict to required model descriptors and standardize using
@@ -48,4 +73,3 @@ high-throughput toxicokinetic models using open-source descriptors.
 \author{
 Daniel E. Dawson and John Wambaugh
 }
-\keyword{internal}

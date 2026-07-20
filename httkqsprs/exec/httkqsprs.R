@@ -4,11 +4,11 @@
 
 # Top-level assignments automatically become CLI flags
 label <- "NewHTTK_April_2026" # becomes --input-file
-output.dir <- "." 
+output.dir <- "."
 
 cat(getwd(),"\n")
 
 library(httkqsprs)
 message("Processing OPERA and Padel descriptor files starting with text: ", label)
 
-generate_preds(label, output.dir)
+generate_preds(label, output.folder=output.dir)

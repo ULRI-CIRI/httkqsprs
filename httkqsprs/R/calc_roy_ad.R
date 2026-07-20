@@ -1,10 +1,10 @@
 #' Calculate Roy et al. (2015) applicability domain metrics.
 #'
 #' Applies the Roy et al. (2015) applicability domain (AD) procedure to
-#' standardized descriptor values for each chemical. This method essentially 
+#' standardized descriptor values for each chemical. This method essentially
 #' calculates a z-score for each descriptor using the mean and standard deviation
 #' of the training set.
-#' 
+#'
 #' Recall that the descriptors are all centered and scaled by the mean and standard
 #' deviation of the respective training set, so that the values passed in data are
 #' already the number of standad deviations from the mean.
@@ -55,7 +55,7 @@ calc_roy_ad <- function(
   threshold = 3,
   z_multiplier = 1.28
 ) {
-  ad_data <- data[, which(names(data) %in% model_vars)]
+  ad_data <- data[, model_vars]
   ad_data <- abs(ad_data)
 
   SImin <- apply(ad_data, 1, min)

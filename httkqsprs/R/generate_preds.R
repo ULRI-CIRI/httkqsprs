@@ -46,6 +46,10 @@
 #'   `NULL`, `generate_preds()` attempts to use `classmodopt` if available.
 #' @param papp_model_label Character scalar indicating which `qspr.summary`
 #'   column to use for class-to-quantitative mapping in [calc_papp()].
+#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
+#'   Defaults to \code{\link{getwd}}.
+#' @param output.folder The folder where the output file is placed.
+#'   Defaults to \code{\link{tempdir}}.
 #'
 #' @return A named list with:
 #' \describe{
@@ -83,9 +87,10 @@ generate_preds <- function(
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   chems = NULL,
-  papp_model = NULL,
-  papp_model_label = "LogPab3Bin"
-) {
+  input.folder = getwd(),
+  output.folder = tempdir()
+  )
+{
   if (is.null(output.path)) {
     output.path <- tempdir()
   }
@@ -95,7 +100,9 @@ generate_preds <- function(
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix
+    padelpostfix = padelpostfix,
+    input.folder = input.folder,
+    output.folder = output.folder
   )
 
   fup <- calc_fup(
@@ -103,15 +110,19 @@ generate_preds <- function(
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix
-    )
+    padelpostfix = padelpostfix,
+    input.folder = input.folder,
+    output.folder = output.folder
+  )
 
   papp <- calc_papp(
     datalabel = Datalabel,
     opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix
+    padelpostfix = padelpostfix,
+    input.folder = input.folder,
+    output.folder = output.folder
   )
 
   return(list(
