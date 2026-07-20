@@ -10,10 +10,9 @@ generate_preds(
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  conn_str = NULL,
   chems = NULL,
-  papp_model = NULL,
-  papp_model_label = "LogPab3Bin"
+  input.folder = getwd(),
+  output.folder = tempdir()
 )
 }
 \arguments{
@@ -29,10 +28,14 @@ CSV.}
 \item{padelpostfix}{Postfix of the PaDEL descriptor file when reading from
 CSV.}
 
-\item{conn_str}{Unused placeholder for connection string compatibility.}
-
 \item{chems}{Optional character vector of CICHEM identifiers. If provided,
 descriptors are queried via database helper functions.}
+
+\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
+Defaults to \code{\link{getwd}}.}
+
+\item{output.folder}{The folder where the output file is placed.
+Defaults to \code{\link{tempdir}}.}
 
 \item{papp_model}{Optional fitted Caco-2 Papp classification model. If
 \code{NULL}, \code{generate_preds()} attempts to use \code{classmodopt} if available.}
@@ -50,11 +53,10 @@ otherwise \code{NULL}.}
 }
 }
 \description{
-This function reads OPERA and PaDEL descriptors for novel chemicals,
-standardizes and applies the Dawson et al. (2021) QSPR models to predict
-Clint and Fup, and optionally applies the Honda et al. Caco-2 QSPR to
-predict apparent permeability (Papp) when the required model object is
-provided or available in package data.
+This function orchestrates Clint, Fup, and optional Papp prediction
+workflows. Descriptor retrieval is delegated to \code{\link[=calc_clint]{calc_clint()}},
+\code{\link[=calc_fup]{calc_fup()}}, and \code{\link[=calc_papp]{calc_papp()}} so each workflow requests only the
+descriptors it needs.
 }
 \references{
 Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput

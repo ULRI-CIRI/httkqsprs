@@ -4,12 +4,7 @@
 \alias{get_opera}
 \title{Retrieve OPeRA descriptors from SQL database}
 \usage{
-get_opera(
-  cichem_list = chems,
-  descriptors = NULL,
-  opera_version = "2.9",
-  conn_str = NULL
-)
+get_opera(cichem_list = NULL, descriptors = NULL, opera_version = "2.9")
 }
 \description{
 Retrieve OPeRA descriptors from SQL database

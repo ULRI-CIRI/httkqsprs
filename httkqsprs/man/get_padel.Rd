@@ -4,12 +4,7 @@
 \alias{get_padel}
 \title{Retrieve Padel descriptors from SQL database}
 \usage{
-get_padel(
-  cichem_list = chems,
-  descriptors = NULL,
-  opera_version = "2.9",
-  conn_str = NULL
-)
+get_padel(cichem_list = NULL, descriptors = NULL, opera_version = "2.9")
 }
 \description{
 Retrieve Padel descriptors from SQL database
@@ -18,5 +13,5 @@ Retrieve Padel descriptors from SQL database
 Yap, Chun Wei. "PaDEL‐descriptor: An open source software to calculate molecular descriptors and fingerprints." Journal of computational chemistry 32.7 (2011): 1466-1474.
 }
 \author{
-John Wambaugh and Andy Shapiro
+Andy Shapiro and John Wambaugh
 }

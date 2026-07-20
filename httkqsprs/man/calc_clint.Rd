@@ -4,19 +4,36 @@
 \alias{calc_clint}
 \title{Calculate Clint predictions and Roy AD metrics}
 \usage{
-calc_clint(chemlist, descnames, datalabel, opera_version)
+calc_clint(
+  datalabel,
+  opera_version,
+  chems = NULL,
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
+)
 }
 \arguments{
-\item{chemlist}{Data frame of input chemicals and descriptors. The first
-column is treated as an identifier and descriptor columns are matched to
-the Clint model requirements.}
-
-\item{descnames}{Character vector of descriptor column names to standardize
-using \code{clint.msd}.}
-
 \item{datalabel}{Character scalar used in output filenames.}
 
 \item{opera_version}{Character scalar used in output filenames.}
+
+\item{chems}{Optional character vector of CICHEM identifiers. If provided,
+descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
+\code{\link[=get_opera]{get_opera()}}.}
+
+\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
+\code{chems} is \code{NULL}.}
+
+\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
+Defaults to \code{\link{getwd}}.}
+
+\item{output.folder}{The folder where the output file is placed.
+Defaults to \code{\link{tempdir}}.}
 }
 \value{
 Data frame of complete-case Clint predictions with columns for
@@ -24,14 +41,18 @@ Data frame of complete-case Clint predictions with columns for
 Roy AD metrics (\code{SImin}, \code{SImax}, \code{SImean}, \code{SIsd}, \code{SI90}, \code{Outlier}).
 }
 \description{
-Standardizes descriptor inputs for the Clint random forest classifier,
-predicts Clint bins, maps bins to median and SD clearance values from the
-training data, computes Roy et al. applicability-domain metrics, and writes
-Clint output CSV files.
+Retrieves only the descriptors required by the Clint model, standardizes
+descriptor inputs for the Clint random forest classifier, predicts Clint
+bins, maps bins to median and SD clearance values from the training data,
+computes Roy et al. applicability-domain metrics, and writes Clint output
+CSV files.
 }
 \details{
 Workflow:
 \enumerate{
+\item Determine Clint-required descriptor names from \code{ClintClass3Mod}.
+\item Retrieve only those OPERA and PaDEL descriptors from CSV files or
+database helpers.
 \item Standardize descriptors using \code{clint.msd} means/SDs.
 \item Restrict to \code{ClintClass3Mod} predictors.
 \item Remove incomplete rows and write an incomplete-records file.
@@ -50,4 +71,3 @@ high-throughput toxicokinetic models using open-source descriptors.
 \author{
 Daniel E. Dawson and John Wambaugh
 }
-\keyword{internal}

@@ -16,6 +16,10 @@
 #'   `chems` is `NULL`.
 #' @param conn_str Optional PostgreSQL connection string used by descriptor
 #'   retrieval helpers when `chems` is provided.
+#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
+#'   Defaults to \code{\link{getwd}}.
+#' @param output.folder The folder where the output file is placed.
+#'   Defaults to \code{\link{tempdir}}.
 #'
 #' @return Data frame of complete-case Fup predictions with columns for
 #'   `Fup.RF.pred` and Roy AD metrics (`SImin`, `SImax`, `SImean`, `SIsd`,
@@ -50,8 +54,11 @@ calc_fup <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
-) {
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
+  )
+{
   fupmodvars <- row.names(RF.fit$importance)
   msd <- fup.msd
 
@@ -69,8 +76,8 @@ calc_fup <- function(
   fup_opera_desc <- paste0(fup_opera_base, "_pred")
 
   if (is.null(chems)) {
-    NEWOPERA <- paste0(datalabel, operapostfix)
-    NEWPADEL <- paste0(datalabel, padelpostfix)
+    NEWOPERA <- paste0(input.folder, "/", datalabel, operapostfix)
+    NEWPADEL <- paste0(input.folder, "/", datalabel, padelpostfix)
 
     Opera <- read.csv(NEWOPERA)
     Padel <- read.csv(NEWPADEL)
@@ -132,7 +139,10 @@ calc_fup <- function(
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
   write.csv(
     Incompletescfup,
-    file = paste0("Incomplete_Opera_PaDEL_fup_predictions_", datalabel, ".csv")
+    file = paste0(output.folder,
+                  "Incomplete_Opera_PaDEL_fup_predictions_",
+                  datalabel,
+                  ".csv")
   )
 
   set.seed(1255)
@@ -146,16 +156,19 @@ calc_fup <- function(
   )
 
   chemlistsc_fup_narm <- data.frame(chemlistsc_fup_narm, SIdf)
+  output.file <- paste0(
+    output.folder,
+    "Novel_fup_predictions_with_AD_",
+    datalabel,
+    "_descs_from_OPERA",
+    opera_version,
+    ".csv"
+    )
   write.csv(
     chemlistsc_fup_narm,
-    file = paste0(
-      "Novel_fup_predictions_with_AD_",
-      datalabel,
-      "_descs_from_OPERA",
-      opera_version,
-      ".csv"
-    )
+    file = output.file
   )
+  cat("Fup predictions written to", output.file, "\n")
 
   return(chemlistsc_fup_narm)
 }

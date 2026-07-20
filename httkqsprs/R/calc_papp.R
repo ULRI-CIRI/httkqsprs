@@ -18,6 +18,10 @@
 #'   `chems` is `NULL`.
 #' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
 #'   `chems` is `NULL`.
+#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
+#'   Defaults to \code{\link{getwd}}.
+#' @param output.folder The folder where the output file is placed.
+#'   Defaults to \code{\link{tempdir}}.
 #'
 #' @return A data frame with one row per chemical and columns:
 #'
@@ -59,20 +63,20 @@ calc_papp <- function(
   opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
+  input.folder = getwd(),
+  output.folder = tempdir()
 ) {
-  opt_desc <- get("opt.desc", inherits = TRUE)
-  train_msd_local <- get("train_msd", inherits = TRUE)
-  qspr_summary_local <- get("qspr.summary", inherits = TRUE)
-
   # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
-  papp_opera_desc <- unique(c(grep("_pred$", opt_desc, value = TRUE), "pKa_a_pred", "pKa_b_pred"))
-  papp_padel_desc <- setdiff(opt_desc, c("fraction_neutral",papp_opera_desc))
+  papp_opera_desc <- unique(c(grep("_pred$", papp_opt_desc, value = TRUE),
+                              "pKa_a_pred", "pKa_b_pred"))
+  papp_padel_desc <- setdiff(papp_opt_desc,
+                             c("fraction_neutral",papp_opera_desc))
   papp_mod_vars <- c(papp_opera_desc, papp_padel_desc, "fraction neutral")
 
   if (is.null(chems)) {
-    NEWOPERA <- paste0(datalabel, operapostfix)
-    NEWPADEL <- paste0(datalabel, padelpostfix)
+    NEWOPERA <- paste0(input.folder, "/", datalabel, operapostfix)
+    NEWPADEL <- paste0(input.folder, "/", datalabel, padelpostfix)
 
     Opera <- read.csv(NEWOPERA)
     Padel <- read.csv(NEWPADEL)
@@ -121,27 +125,32 @@ calc_papp <- function(
   }
 
   # Restrict to only the columns required for the Papp model
-  papp_desc <- papp_df[, opt_desc, drop = FALSE]
+  papp_desc <- papp_df[, papp_opt_desc, drop = FALSE]
 
   # Standardize descriptors using means/SDs from training data
-  for (this_col in opt_desc) {
-    if (is.numeric(train_msd_local[1, this_col])) {
-      papp_desc[, this_col] <- 
-        (papp_desc[, this_col] - 
-        train_msd_local[1, this_col]) /
-        train_msd_local[2, this_col]
+  for (this_col in papp_opt_desc) {
+    if (is.numeric(papp_train_msd[1, this_col])) {
+      papp_desc[, this_col] <-
+        (papp_desc[, this_col] -
+        papp_train_msd[1, this_col]) /
+        papp_train_msd[2, this_col]
     }
   }
 
   # Assign NA values the mean (0 after standardization) for any missing descriptors:
   papp_desc[is.na(papp_desc)] <- 0
+  # Set any infinite descriptor to 100 sd's (outside of DOA):
+inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
+for (col in inf_cols) {
+  inf_rows <- which(is.infinite(papp_desc[[col]]))
+  papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
+}
 
-  browser()
-  pred <- predict(classmodopt, papp_desc)
+  pred <- predict(papp_classmodopt, papp_desc)
 
   ad <- calc_roy_ad(
     data = papp_desc,
-    model_vars = papp_mod_vars
+    model_vars = papp_opt_desc
   )
 
   papp_pred <- data.frame(
@@ -152,23 +161,26 @@ calc_papp <- function(
   )
 
   for (this_bin in sort(as.character(unique(papp_pred$Pab.Class.Pred)))) {
-    bin_value <- qspr_summary_local[paste0("Bin", this_bin), "LogPab3Bin"]
+    bin_value <- papp_qspr_summary[paste0("Bin", this_bin), "LogPab3Bin"]
     bin_value <- gsub(" \\(", ",", bin_value)
     bin_value <- gsub(" - ", ",", bin_value)
     bin_value <- gsub("\\)", "", bin_value)
     papp_pred[as.character(papp_pred$Pab.Class.Pred) == this_bin, "Pab.Quant.Pred"] <- bin_value
   }
 
+  output.file <- paste0(
+    output.folder,
+    "Novel_papp_predictions_with_AD_",
+    datalabel,
+    "_descs_from_OPERA",
+    opera_version,
+    ".csv"
+    )
   write.csv(
     papp_pred,
-    file = paste0(
-      "Novel_papp_predictions_with_AD_",
-      datalabel,
-      "_descs_from_OPERA",
-      opera_version,
-      ".csv"
+    file = output.file
     )
-  )
+  cat("Papp predictions written to", output.file,"\n")
 
   return(papp_pred)
 }
