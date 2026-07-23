@@ -59,10 +59,13 @@ calc_fup <- function(
   output.folder = tempdir()
   )
 {
-  fupmodvars <- row.names(RF.fit$importance)
-  msd <- fup.msd
-
+  # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
+  RF.fit <- httkqsprs::RF.fit
+  msd <- httkqsprs::fup.msd
+
+  fupmodvars <- row.names(RF.fit$importance)
+
   opera_desc_all <- paste0(Descriptors$Opera, "_pred")
 
   fup_padel_base <- stringr::str_remove(

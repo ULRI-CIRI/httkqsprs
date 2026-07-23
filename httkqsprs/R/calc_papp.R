@@ -67,6 +67,12 @@ calc_papp <- function(
   input.folder = getwd(),
   output.folder = tempdir()
 ) {
+  # Load these from package in case user hasn't loaded whole package:
+  papp_opt_desc <- httkqsprs::papp_opt_desc
+  papp_classmodopt <- httkqsprs::papp_classmodopt
+  papp_train_msd <- httkqsprs::papp_train_msd
+  papp_qspr_summary <- httkqsprs::papp_qspr_summary
+
   # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
   papp_opera_desc <- unique(c(grep("_pred$", papp_opt_desc, value = TRUE),
                               "pKa_a_pred", "pKa_b_pred"))
