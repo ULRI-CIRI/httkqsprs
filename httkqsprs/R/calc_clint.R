@@ -58,7 +58,13 @@ calc_clint <- function(
   output.folder = tempdir()
   )
 {
+  # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
+  ClintClass3Mod <- httkqsprs::ClintClass3Mod
+  clint.msd <- httkqsprs::clint.msd
+  tmeanagtable <- httkqsprs::tmeanagtable
+  tsdagtable <- httkqsprs::tsdagtable
+
   opera_desc_all <- paste0(Descriptors$Opera, "_pred")
   clintmodvars <- row.names(importance(ClintClass3Mod))
 
