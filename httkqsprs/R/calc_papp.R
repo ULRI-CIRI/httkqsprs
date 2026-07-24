@@ -74,10 +74,15 @@ calc_papp <- function(
   papp_qspr_summary <- httkqsprs::papp_qspr_summary
 
   # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
-  papp_opera_desc <- unique(c(grep("_pred$", papp_opt_desc, value = TRUE),
-                              "pKa_a_pred", "pKa_b_pred"))
-  papp_padel_desc <- setdiff(papp_opt_desc,
-                             c("fraction_neutral",papp_opera_desc))
+  papp_opera_desc <- unique(c(
+    grep("_pred$", papp_opt_desc, value = TRUE),
+    "pKa_a_pred",
+    "pKa_b_pred"
+  ))
+  papp_padel_desc <- setdiff(
+    papp_opt_desc,
+    c("fraction_neutral", papp_opera_desc)
+  )
   papp_mod_vars <- c(papp_opera_desc, papp_padel_desc, "fraction neutral")
 
   if (is.null(chems)) {
@@ -89,17 +94,33 @@ calc_papp <- function(
 
     missing_opera <- setdiff(papp_opera_desc, names(Opera))
     if (length(missing_opera) > 0) {
-      for (nm in missing_opera) Opera[[nm]] <- NA_real_
+      for (nm in missing_opera) {
+        Opera[[nm]] <- NA_real_
+      }
     }
 
     missing_padel <- setdiff(papp_padel_desc, names(Padel))
     if (length(missing_padel) > 0) {
-      for (nm in missing_padel) Padel[[nm]] <- NA_real_
+      for (nm in missing_padel) {
+        Padel[[nm]] <- NA_real_
+      }
     }
 
-    Opera <- Opera[, c(1, which(names(Opera) %in% papp_opera_desc)), drop = FALSE]
-    Padel <- Padel[, c(1, which(names(Padel) %in% papp_padel_desc)), drop = FALSE]
-    papp_df <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
+    Opera <- Opera[,
+      c(1, which(names(Opera) %in% papp_opera_desc)),
+      drop = FALSE
+    ]
+    Padel <- Padel[,
+      c(1, which(names(Padel) %in% papp_padel_desc)),
+      drop = FALSE
+    ]
+    papp_df <- merge(
+      Opera,
+      Padel,
+      by.x = "MoleculeID",
+      by.y = "Name",
+      all.x = TRUE
+    )
   } else {
     Padel <- get_padel(
       cichem_list = chems,
@@ -138,7 +159,7 @@ calc_papp <- function(
     if (is.numeric(papp_train_msd[1, this_col])) {
       papp_desc[, this_col] <-
         (papp_desc[, this_col] -
-        papp_train_msd[1, this_col]) /
+          papp_train_msd[1, this_col]) /
         papp_train_msd[2, this_col]
     }
   }
@@ -146,11 +167,11 @@ calc_papp <- function(
   # Assign NA values the mean (0 after standardization) for any missing descriptors:
   papp_desc[is.na(papp_desc)] <- 0
   # Set any infinite descriptor to 100 sd's (outside of DOA):
-inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
-for (col in inf_cols) {
-  inf_rows <- which(is.infinite(papp_desc[[col]]))
-  papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
-}
+  inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
+  for (col in inf_cols) {
+    inf_rows <- which(is.infinite(papp_desc[[col]]))
+    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
+  }
 
   pred <- predict(papp_classmodopt, papp_desc)
 
@@ -160,7 +181,7 @@ for (col in inf_cols) {
   )
 
   papp_pred <- data.frame(
-   MoleculeID = papp_df$MoleculeI,
+    MoleculeID = papp_df$MoleculeI,
     Pab.Class.Pred = pred,
     Pab.Pred.AD = ad$Outlier,
     stringsAsFactors = FALSE
@@ -171,7 +192,10 @@ for (col in inf_cols) {
     bin_value <- gsub(" \\(", ",", bin_value)
     bin_value <- gsub(" - ", ",", bin_value)
     bin_value <- gsub("\\)", "", bin_value)
-    papp_pred[as.character(papp_pred$Pab.Class.Pred) == this_bin, "Pab.Quant.Pred"] <- bin_value
+    papp_pred[
+      as.character(papp_pred$Pab.Class.Pred) == this_bin,
+      "Pab.Quant.Pred"
+    ] <- bin_value
   }
 
   output.file <- paste0(
@@ -181,12 +205,12 @@ for (col in inf_cols) {
     "_descs_from_OPERA",
     opera_version,
     ".csv"
-    )
+  )
   write.csv(
     papp_pred,
     file = output.file
-    )
-  cat("Papp predictions written to", output.file,"\n")
+  )
+  cat("Papp predictions written to", output.file, "\n")
 
   return(papp_pred)
 }

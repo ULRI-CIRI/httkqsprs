@@ -57,8 +57,7 @@ calc_fup <- function(
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   input.folder = getwd(),
   output.folder = tempdir()
-  )
-{
+) {
   # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
   RF.fit <- httkqsprs::RF.fit
@@ -87,17 +86,33 @@ calc_fup <- function(
 
     missing_opera <- setdiff(fup_opera_desc, names(Opera))
     if (length(missing_opera) > 0) {
-      for (nm in missing_opera) Opera[[nm]] <- NA_real_
+      for (nm in missing_opera) {
+        Opera[[nm]] <- NA_real_
+      }
     }
 
     missing_padel <- setdiff(fup_padel_base, names(Padel))
     if (length(missing_padel) > 0) {
-      for (nm in missing_padel) Padel[[nm]] <- NA_real_
+      for (nm in missing_padel) {
+        Padel[[nm]] <- NA_real_
+      }
     }
 
-    Opera <- Opera[, c(1, which(names(Opera) %in% fup_opera_desc)), drop = FALSE]
-    Padel <- Padel[, c(1, which(names(Padel) %in% fup_padel_base)), drop = FALSE]
-    fupchemlist <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
+    Opera <- Opera[,
+      c(1, which(names(Opera) %in% fup_opera_desc)),
+      drop = FALSE
+    ]
+    Padel <- Padel[,
+      c(1, which(names(Padel) %in% fup_padel_base)),
+      drop = FALSE
+    ]
+    fupchemlist <- merge(
+      Opera,
+      Padel,
+      by.x = "MoleculeID",
+      by.y = "Name",
+      all.x = TRUE
+    )
   } else {
     Padel <- get_padel(
       cichem_list = chems,
@@ -110,7 +125,9 @@ calc_fup <- function(
     fupchemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
   }
 
-  Padeldesc <- which(names(fupchemlist) %in% stringr::str_remove(fupmodvars, "padel_"))
+  Padeldesc <- which(
+    names(fupchemlist) %in% stringr::str_remove(fupmodvars, "padel_")
+  )
   Operadesc <- which(
     stringr::str_remove(names(fupchemlist), "_pred") %in%
       stringr::str_remove(fupmodvars, "Opera_")
@@ -142,16 +159,21 @@ calc_fup <- function(
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
   write.csv(
     Incompletescfup,
-    file = paste0(output.folder,
-                  "Incomplete_Opera_PaDEL_fup_predictions_",
-                  datalabel,
-                  ".csv")
+    file = paste0(
+      output.folder,
+      "Incomplete_Opera_PaDEL_fup_predictions_",
+      datalabel,
+      ".csv"
+    )
   )
 
   set.seed(1255)
   chemlistpredictfup <- predict(RF.fit, chemlistsc_fup_narm)
   chemlistsc_fup_narm$Fup.RF.pred <- chemlistpredictfup^2
-  chemlistsc_fup_narm$Fup.RF.pred <- signif(chemlistsc_fup_narm$Fup.RF.pred, digits = 3)
+  chemlistsc_fup_narm$Fup.RF.pred <- signif(
+    chemlistsc_fup_narm$Fup.RF.pred,
+    digits = 3
+  )
 
   SIdf <- calc_roy_ad(
     data = chemlistsc_fup_narm,
@@ -166,7 +188,7 @@ calc_fup <- function(
     "_descs_from_OPERA",
     opera_version,
     ".csv"
-    )
+  )
   write.csv(
     chemlistsc_fup_narm,
     file = output.file

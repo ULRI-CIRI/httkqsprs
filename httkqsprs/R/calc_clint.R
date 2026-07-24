@@ -56,8 +56,7 @@ calc_clint <- function(
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   input.folder = getwd(),
   output.folder = tempdir()
-  )
-{
+) {
   # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
   ClintClass3Mod <- httkqsprs::ClintClass3Mod
@@ -80,17 +79,33 @@ calc_clint <- function(
 
     missing_opera <- setdiff(clint_opera_desc, names(Opera))
     if (length(missing_opera) > 0) {
-      for (nm in missing_opera) Opera[[nm]] <- NA_real_
+      for (nm in missing_opera) {
+        Opera[[nm]] <- NA_real_
+      }
     }
 
     missing_padel <- setdiff(clint_padel_desc, names(Padel))
     if (length(missing_padel) > 0) {
-      for (nm in missing_padel) Padel[[nm]] <- NA_real_
+      for (nm in missing_padel) {
+        Padel[[nm]] <- NA_real_
+      }
     }
 
-    Opera <- Opera[, c(1, which(names(Opera) %in% clint_opera_desc)), drop = FALSE]
-    Padel <- Padel[, c(1, which(names(Padel) %in% clint_padel_desc)), drop = FALSE]
-    chemlist <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
+    Opera <- Opera[,
+      c(1, which(names(Opera) %in% clint_opera_desc)),
+      drop = FALSE
+    ]
+    Padel <- Padel[,
+      c(1, which(names(Padel) %in% clint_padel_desc)),
+      drop = FALSE
+    ]
+    chemlist <- merge(
+      Opera,
+      Padel,
+      by.x = "MoleculeID",
+      by.y = "Name",
+      all.x = TRUE
+    )
   } else {
     Padel <- get_padel(
       cichem_list = chems,
@@ -108,7 +123,10 @@ calc_clint <- function(
   submsd <- msd[, which(names(msd) %in% names(chemlist))]
 
   chemlistsc <- chemlist
-  descnames <- intersect(c(clint_padel_desc, clint_opera_desc), names(chemlistsc))
+  descnames <- intersect(
+    c(clint_padel_desc, clint_opera_desc),
+    names(chemlistsc)
+  )
   for (i in descnames) {
     sub1 <- subset(submsd, select = c(names(submsd) == i))
     chemlistsc[, i] <- (chemlist[, i] - sub1[1, 1]) / sub1[2, 1]
@@ -126,10 +144,12 @@ calc_clint <- function(
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
   write.csv(
     IncompleteClint,
-    file = paste0(output.folder,
-                  "Incomplete_Opera_PaDEL_Clint_predictions_",
-                  datalabel,
-                  ".csv")
+    file = paste0(
+      output.folder,
+      "Incomplete_Opera_PaDEL_Clint_predictions_",
+      datalabel,
+      ".csv"
+    )
   )
 
   set.seed(1255)
@@ -139,16 +159,30 @@ calc_clint <- function(
   chemlistsc_Clint_narm$ClintPredictBin_MD <- ifelse(
     chemlistsc_Clint_narm$ClintPredictBin == 1,
     tmeanagtable[1, 2],
-    ifelse(chemlistsc_Clint_narm$ClintPredictBin == 2, tmeanagtable[2, 2], tmeanagtable[3, 2])
+    ifelse(
+      chemlistsc_Clint_narm$ClintPredictBin == 2,
+      tmeanagtable[2, 2],
+      tmeanagtable[3, 2]
+    )
   )
   chemlistsc_Clint_narm$ClintPredictBin_SD <- ifelse(
     chemlistsc_Clint_narm$ClintPredictBin == 1,
     tsdagtable[1, 2],
-    ifelse(chemlistsc_Clint_narm$ClintPredictBin == 2, tsdagtable[2, 2], tsdagtable[3, 2])
+    ifelse(
+      chemlistsc_Clint_narm$ClintPredictBin == 2,
+      tsdagtable[2, 2],
+      tsdagtable[3, 2]
+    )
   )
 
-  chemlistsc_Clint_narm$ClintPredictBin_MD <- signif(chemlistsc_Clint_narm$ClintPredictBin_MD, digits = 3)
-  chemlistsc_Clint_narm$ClintPredictBin_SD <- signif(chemlistsc_Clint_narm$ClintPredictBin_SD, digits = 3)
+  chemlistsc_Clint_narm$ClintPredictBin_MD <- signif(
+    chemlistsc_Clint_narm$ClintPredictBin_MD,
+    digits = 3
+  )
+  chemlistsc_Clint_narm$ClintPredictBin_SD <- signif(
+    chemlistsc_Clint_narm$ClintPredictBin_SD,
+    digits = 3
+  )
 
   SIdf <- calc_roy_ad(
     data = chemlistsc_Clint_narm,
@@ -163,12 +197,12 @@ calc_clint <- function(
     "_descs_from_OPERA",
     opera_version,
     ".csv"
-    )
+  )
   write.csv(
     chemlistsc_Clint_narm,
     file = output.file
-    )
-  cat("Clint preditions written to", output.file,"\n")
+  )
+  cat("Clint preditions written to", output.file, "\n")
 
   return(chemlistsc_Clint_narm)
 }
