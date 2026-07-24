@@ -6,8 +6,8 @@
 #' random forest model.
 #'
 #' The function also maps predicted bins to summary quantitative ranges in
-#' `qspr.summary`, producing a character column (`Pab.Quant.Pred`) of the form
-#' `"median,lower,upper"`.
+#' `qspr.summary`, producing three numeric columns (`Pab.Quant.Pred.Median`,
+#' `Pab.Quant.Pred.LowerCI`, `Pab.Quant.Pred.UpperCI`).
 #'
 #' @param datalabel Character scalar label for this prediction run.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
@@ -27,8 +27,9 @@
 #'     `Pab.Class.Pred` (predicted Papp class/bin),
 #'     `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain,
 #'     `0` = out-of-domain), and
-#'     `Pab.Quant.Pred` (comma-delimited quantitative summary from
-#'     `qspr.summary`).}
+#'     `Pab.Quant.Pred.Median` (median log Papp for the predicted bin),
+#'     `Pab.Quant.Pred.LowerCI` (lower percentile bound), and
+#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from `qspr.summary`.}
 #'   \item{missing}{`NULL`; Papp handles missing descriptors via mean
 #'     imputation rather than case exclusion.}
 #' }
@@ -188,16 +189,23 @@ calc_papp <- function(
     stringsAsFactors = FALSE
   )
 
+  re_pattern <- "([0-9.]+)\\s*\\(([0-9.]+)\\s*-\\s*([0-9.]+)\\)"
   for (this_bin in sort(as.character(unique(papp_pred$Pab.Class.Pred)))) {
     bin_value <- papp_qspr_summary[paste0("Bin", this_bin), "LogPab3Bin"]
-    bin_value <- gsub(" \\(", ",", bin_value)
-    bin_value <- gsub(" - ", ",", bin_value)
-    bin_value <- gsub("\\)", "", bin_value)
-    papp_pred[
-      as.character(papp_pred$Pab.Class.Pred) == this_bin,
-      "Pab.Quant.Pred"
-    ] <- bin_value
+    parts <- regmatches(bin_value, regexec(re_pattern, bin_value))[[1]]
+    rows <- as.character(papp_pred$Pab.Class.Pred) == this_bin
+    papp_pred[rows, "Pab.Quant.Pred.Median"] <- parts[2]
+    papp_pred[rows, "Pab.Quant.Pred.LowerCI"] <- parts[3]
+    papp_pred[rows, "Pab.Quant.Pred.UpperCI"] <- parts[4]
   }
+  papp_pred$Pab.Pred.AD <- as.integer(papp_pred$Pab.Pred.AD)
+  papp_pred$Pab.Quant.Pred.Median <- as.numeric(papp_pred$Pab.Quant.Pred.Median)
+  papp_pred$Pab.Quant.Pred.LowerCI <- as.numeric(
+    papp_pred$Pab.Quant.Pred.LowerCI
+  )
+  papp_pred$Pab.Quant.Pred.UpperCI <- as.numeric(
+    papp_pred$Pab.Quant.Pred.UpperCI
+  )
 
   return(list(output = papp_pred, missing = NULL))
 }
