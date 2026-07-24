@@ -1,6 +1,12 @@
 library(readxl)
-training <- read_excel("data-raw/S2_Dawson et al. Supporting_Information_Revision_Final_Sharing.xlsx", sheet=3)
-training$Bin3.Adj=ifelse(training$Bin3.Adj==4,3,training$Bin3.Adj)
-tmeanagtable=aggregate(training$Clearance.Adj~training$Bin3.Adj, FUN="median")
-tsdagtable=aggregate(training$Clearance.Adj~training$Bin3.Adj, FUN="sd")
-save(tmeanagtable, tsdagtable, file="data/clint-bin-averages.RData")
+training <- read_excel(
+  "data-raw/S2_Dawson et al. Supporting_Information_Revision_Final_Sharing.xlsx",
+  sheet = 3
+)
+training$Bin3.Adj <- ifelse(training$Bin3.Adj == 4, 3, training$Bin3.Adj)
+tmeanagtable <- aggregate(
+  training$Clearance.Adj ~ training$Bin3.Adj,
+  FUN = "median"
+)
+tsdagtable <- aggregate(training$Clearance.Adj ~ training$Bin3.Adj, FUN = "sd")
+save(tmeanagtable, tsdagtable, file = "data/clint-bin-averages.RData")

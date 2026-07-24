@@ -89,8 +89,7 @@ generate_preds <- function(
   chems = NULL,
   input.folder = getwd(),
   output.folder = tempdir()
-  )
-{
+) {
   if (is.null(output.path)) {
     output.path <- tempdir()
   }
