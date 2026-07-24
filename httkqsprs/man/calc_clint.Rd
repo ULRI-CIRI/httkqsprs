@@ -6,18 +6,14 @@
 \usage{
 calc_clint(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 )
 }
 \arguments{
 \item{datalabel}{Character scalar used in output filenames.}
-
-\item{opera_version}{Character scalar used in output filenames.}
 
 \item{chems}{Optional character vector of CICHEM identifiers. If provided,
 descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
@@ -31,21 +27,22 @@ descriptors are retrieved from the database using \code{\link[=get_padel]{get_pa
 
 \item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
 Defaults to \code{\link{getwd}}.}
-
-\item{output.folder}{The folder where the output file is placed.
-Defaults to \code{\link{tempdir}}.}
 }
 \value{
-Data frame of complete-case Clint predictions with columns for
-\code{ClintPredictBin}, \code{ClintPredictBin_MD}, \code{ClintPredictBin_SD}, and
-Roy AD metrics (\code{SImin}, \code{SImax}, \code{SImean}, \code{SIsd}, \code{SI90}, \code{Outlier}).
+A named list with two elements:
+\describe{
+\item{output}{Data frame of complete-case Clint predictions with columns
+for \code{ClintPredictBin}, \code{ClintPredictBin_MD}, \code{ClintPredictBin_SD}, and
+Roy AD metrics (\code{SImin}, \code{SImax}, \code{SImean}, \code{SIsd}, \code{SI90}, \code{Outlier}).}
+\item{missing}{Data frame of chemicals excluded due to incomplete
+descriptor data.}
+}
 }
 \description{
 Retrieves only the descriptors required by the Clint model, standardizes
 descriptor inputs for the Clint random forest classifier, predicts Clint
 bins, maps bins to median and SD clearance values from the training data,
-computes Roy et al. applicability-domain metrics, and writes Clint output
-CSV files.
+and computes Roy et al. applicability-domain metrics.
 }
 \details{
 Workflow:
@@ -55,12 +52,11 @@ Workflow:
 database helpers.
 \item Standardize descriptors using \code{clint.msd} means/SDs.
 \item Restrict to \code{ClintClass3Mod} predictors.
-\item Remove incomplete rows and write an incomplete-records file.
+\item Remove incomplete rows (returned in \verb{$missing}).
 \item Predict Clint bins using \code{predict(ClintClass3Mod, ...)}.
 \item Convert bins to median/SD clearance values using \code{tmeanagtable} and
 \code{tsdagtable}.
 \item Compute Roy AD metrics with \code{\link[=calc_roy_ad]{calc_roy_ad()}}.
-\item Write Clint predictions with AD annotations to disk.
 }
 }
 \references{

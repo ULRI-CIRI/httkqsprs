@@ -13,3 +13,7 @@ lint:
 # ✨ Format code
 format:
   uvx --from air-formatter air format .
+
+# 📚 Document code
+document:
+  R -e "devtools::document('httkqsprs')"
