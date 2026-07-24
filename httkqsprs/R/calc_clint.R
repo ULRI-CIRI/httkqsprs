@@ -3,11 +3,9 @@
 #' Retrieves only the descriptors required by the Clint model, standardizes
 #' descriptor inputs for the Clint random forest classifier, predicts Clint
 #' bins, maps bins to median and SD clearance values from the training data,
-#' computes Roy et al. applicability-domain metrics, and writes Clint output
-#' CSV files.
+#' and computes Roy et al. applicability-domain metrics.
 #'
 #' @param datalabel Character scalar used in output filenames.
-#' @param opera_version Character scalar used in output filenames.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
 #'   descriptors are retrieved from the database using [get_padel()] and
 #'   [get_opera()].
@@ -17,12 +15,15 @@
 #'   `chems` is `NULL`.
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
-#' @param output.folder The folder where the output file is placed.
-#'   Defaults to \code{\link{tempdir}}.
 #'
-#' @return Data frame of complete-case Clint predictions with columns for
-#'   `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and
-#'   Roy AD metrics (`SImin`, `SImax`, `SImean`, `SIsd`, `SI90`, `Outlier`).
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{output}{Data frame of complete-case Clint predictions with columns
+#'     for `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and
+#'     Roy AD metrics (`SImin`, `SImax`, `SImean`, `SIsd`, `SI90`, `Outlier`).}
+#'   \item{missing}{Data frame of chemicals excluded due to incomplete
+#'     descriptor data.}
+#' }
 #'
 #' @details
 #' Workflow:
@@ -32,12 +33,11 @@
 #'   database helpers.
 #'   \item Standardize descriptors using `clint.msd` means/SDs.
 #'   \item Restrict to `ClintClass3Mod` predictors.
-#'   \item Remove incomplete rows and write an incomplete-records file.
+#'   \item Remove incomplete rows (returned in `$missing`).
 #'   \item Predict Clint bins using `predict(ClintClass3Mod, ...)`.
 #'   \item Convert bins to median/SD clearance values using `tmeanagtable` and
 #'   `tsdagtable`.
 #'   \item Compute Roy AD metrics with [calc_roy_ad()].
-#'   \item Write Clint predictions with AD annotations to disk.
 #' }
 #'
 #' @author Daniel E. Dawson and John Wambaugh
@@ -50,12 +50,10 @@
 #' @export calc_clint
 calc_clint <- function(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 ) {
   # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
@@ -142,15 +140,6 @@ calc_clint <- function(
   ClintComplete <- complete.cases(chemlistsc_Clint)
   chemlistsc_Clint_narm <- chemlistsc_Clint[which(ClintComplete == TRUE), ]
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
-  write.csv(
-    IncompleteClint,
-    file = paste0(
-      output.folder,
-      "Incomplete_Opera_PaDEL_Clint_predictions_",
-      datalabel,
-      ".csv"
-    )
-  )
 
   set.seed(1255)
   chemlistpredictClint <- predict(ClintClass3Mod, chemlistsc_Clint_narm)
@@ -190,19 +179,6 @@ calc_clint <- function(
   )
 
   chemlistsc_Clint_narm <- data.frame(chemlistsc_Clint_narm, SIdf)
-  output.file <- paste0(
-    output.folder,
-    "Novel_clint_predictions_with_AD_",
-    datalabel,
-    "_descs_from_OPERA",
-    opera_version,
-    ".csv"
-  )
-  write.csv(
-    chemlistsc_Clint_narm,
-    file = output.file
-  )
-  cat("Clint preditions written to", output.file, "\n")
 
-  return(chemlistsc_Clint_narm)
+  return(list(output = chemlistsc_Clint_narm, missing = IncompleteClint))
 }

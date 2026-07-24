@@ -2,11 +2,10 @@
 #'
 #' Retrieves only the descriptors required by the Fup model, harmonizes
 #' descriptor names to match the Fup model conventions, standardizes model
-#' inputs, predicts transformed Fup, back-transforms predictions, computes Roy
-#' et al. applicability-domain metrics, and writes Fup output CSV files.
+#' inputs, predicts transformed Fup, back-transforms predictions, and computes
+#' Roy et al. applicability-domain metrics.
 #'
 #' @param datalabel Character scalar used in output filenames.
-#' @param opera_version Character scalar used in output filenames.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
 #'   descriptors are retrieved from the database using [get_padel()] and
 #'   [get_opera()].
@@ -18,12 +17,15 @@
 #'   retrieval helpers when `chems` is provided.
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
-#' @param output.folder The folder where the output file is placed.
-#'   Defaults to \code{\link{tempdir}}.
 #'
-#' @return Data frame of complete-case Fup predictions with columns for
-#'   `Fup.RF.pred` and Roy AD metrics (`SImin`, `SImax`, `SImean`, `SIsd`,
-#'   `SI90`, `Outlier`).
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{output}{Data frame of complete-case Fup predictions with columns
+#'     for `Fup.RF.pred` and Roy AD metrics (`SImin`, `SImax`, `SImean`,
+#'     `SIsd`, `SI90`, `Outlier`).}
+#'   \item{missing}{Data frame of chemicals excluded due to incomplete
+#'     descriptor data.}
+#' }
 #'
 #' @details
 #' Workflow:
@@ -35,10 +37,9 @@
 #'   descriptors with `Opera_`.
 #'   \item Restrict to required model descriptors and standardize using
 #'   `fup.msd` means/SDs.
-#'   \item Remove incomplete rows and write an incomplete-records file.
+#'   \item Remove incomplete rows (returned in `$missing`).
 #'   \item Predict transformed Fup and back-transform by squaring.
 #'   \item Compute Roy AD metrics with [calc_roy_ad()].
-#'   \item Write Fup predictions with AD annotations to disk.
 #' }
 #'
 #' @author Daniel E. Dawson and John Wambaugh
@@ -51,12 +52,10 @@
 #' @export calc_fup
 calc_fup <- function(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 ) {
   # Load these from package in case user hasn't loaded whole package:
   Descriptors <- httkqsprs::Descriptors
@@ -157,15 +156,6 @@ calc_fup <- function(
   fupscComplete <- complete.cases(chemlistfupsc)
   chemlistsc_fup_narm <- chemlistfupsc[which(fupscComplete == TRUE), ]
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
-  write.csv(
-    Incompletescfup,
-    file = paste0(
-      output.folder,
-      "Incomplete_Opera_PaDEL_fup_predictions_",
-      datalabel,
-      ".csv"
-    )
-  )
 
   set.seed(1255)
   chemlistpredictfup <- predict(RF.fit, chemlistsc_fup_narm)
@@ -181,19 +171,6 @@ calc_fup <- function(
   )
 
   chemlistsc_fup_narm <- data.frame(chemlistsc_fup_narm, SIdf)
-  output.file <- paste0(
-    output.folder,
-    "Novel_fup_predictions_with_AD_",
-    datalabel,
-    "_descs_from_OPERA",
-    opera_version,
-    ".csv"
-  )
-  write.csv(
-    chemlistsc_fup_narm,
-    file = output.file
-  )
-  cat("Fup predictions written to", output.file, "\n")
 
-  return(chemlistsc_fup_narm)
+  return(list(output = chemlistsc_fup_narm, missing = Incompletescfup))
 }

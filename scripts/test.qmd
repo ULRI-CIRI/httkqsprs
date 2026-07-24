@@ -13,30 +13,46 @@ devtools::load_all(file.path(Sys.getenv("R_ROOT"), 'httkqsprs'))
 Run the analysis using a small list of chemicals:
 
 ```{r}
-chem.ids <- c(
-  "CICHEM010017986",
-  "CICHEM010028777",
-  "CICHEM010057529",
-  "CICHEM000200048",
-  "CICHEM000200014"
+results <- httkqsprs::generate_preds(
+  "demo",
+  chems = c(
+    "CICHEM010017986",
+    "CICHEM010028777",
+    "CICHEM010057529",
+    "CICHEM000200048",
+    "CICHEM000200014",
+    "NOTREAL"
+  ),
+  write.files = FALSE
 )
-out <- httkqsprs::generate_preds("June2026", chems = chem.ids)
 ```
 
 View the outputs for $CL_{int}$:
 
 ```{r}
-out$Clint
+results$Clint$output
+```
+
+```{r}
+results$Clint$missing
 ```
 
 View the outputs for $F_{up}$:
 
 ```{r}
-out$Fup
+results$Fup$output
+```
+
+```{r}
+results$Fup$missing
 ```
 
 View the outputs for $P_{app}$:
 
 ```{r}
-out$Papp
+results$Papp$output
+```
+
+```{r}
+results$Papp$missing
 ```
