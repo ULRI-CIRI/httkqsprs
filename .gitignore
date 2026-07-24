@@ -1,3 +1,9 @@
+# RStudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
 # R secrets
 .env
 .Renviron
@@ -11,3 +17,4 @@ scripts/*.html
 
 # package
 *.tar.gz
+
