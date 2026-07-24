@@ -1,2 +1,9 @@
+# R secrets
 .Renviron
+
+# rv package management
 rv
+
+# quarto render outputs
+scripts/*_files
+scripts/*.html
