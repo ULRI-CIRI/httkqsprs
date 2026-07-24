@@ -9,8 +9,7 @@
 #' `qspr.summary`, producing a character column (`Pab.Quant.Pred`) of the form
 #' `"median,lower,upper"`.
 #'
-#' @param datalabel Character scalar used in output filenames.
-#' @param opera_version Character scalar used in output filenames.
+#' @param datalabel Character scalar label for this prediction run.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
 #'   descriptors are retrieved from the database using [get_padel()] and
 #'   [get_opera()].
@@ -20,15 +19,19 @@
 #'   `chems` is `NULL`.
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
-#' @param output.folder The folder where the output file is placed.
-#'   Defaults to \code{\link{tempdir}}.
 #'
-#' @return A data frame with one row per chemical and columns:
-#'
-#' * `DTXSID` (identifier copied from the first input column)
-#' * `Pab.Class.Pred` (predicted Papp class/bin)
-#' * `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain, `0` = out-of-domain)
-#' * `Pab.Quant.Pred` (comma-delimited quantitative summary from `qspr.summary`)
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{output}{Data frame with one row per chemical and columns:
+#'     `DTXSID` (identifier copied from the first input column),
+#'     `Pab.Class.Pred` (predicted Papp class/bin),
+#'     `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain,
+#'     `0` = out-of-domain), and
+#'     `Pab.Quant.Pred` (comma-delimited quantitative summary from
+#'     `qspr.summary`).}
+#'   \item{missing}{`NULL`; Papp handles missing descriptors via mean
+#'     imputation rather than case exclusion.}
+#' }
 #'
 #' @details
 #' Required descriptor names are taken from `opt.desc` and expected training-set
@@ -60,12 +63,10 @@
 #' @export calc_papp
 calc_papp <- function(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 ) {
   # Load these from package in case user hasn't loaded whole package:
   papp_opt_desc <- httkqsprs::papp_opt_desc
@@ -198,19 +199,5 @@ calc_papp <- function(
     ] <- bin_value
   }
 
-  output.file <- paste0(
-    output.folder,
-    "Novel_papp_predictions_with_AD_",
-    datalabel,
-    "_descs_from_OPERA",
-    opera_version,
-    ".csv"
-  )
-  write.csv(
-    papp_pred,
-    file = output.file
-  )
-  cat("Papp predictions written to", output.file, "\n")
-
-  return(papp_pred)
+  return(list(output = papp_pred, missing = NULL))
 }
