@@ -1,4 +1,5 @@
 # R secrets
+.env
 .Renviron
 
 # rv package management
