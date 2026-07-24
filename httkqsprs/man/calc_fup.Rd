@@ -6,18 +6,14 @@
 \usage{
 calc_fup(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 )
 }
 \arguments{
 \item{datalabel}{Character scalar used in output filenames.}
-
-\item{opera_version}{Character scalar used in output filenames.}
 
 \item{chems}{Optional character vector of CICHEM identifiers. If provided,
 descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
@@ -32,22 +28,24 @@ descriptors are retrieved from the database using \code{\link[=get_padel]{get_pa
 \item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
 Defaults to \code{\link{getwd}}.}
 
-\item{output.folder}{The folder where the output file is placed.
-Defaults to \code{\link{tempdir}}.}
-
 \item{conn_str}{Optional PostgreSQL connection string used by descriptor
 retrieval helpers when \code{chems} is provided.}
 }
 \value{
-Data frame of complete-case Fup predictions with columns for
-\code{Fup.RF.pred} and Roy AD metrics (\code{SImin}, \code{SImax}, \code{SImean}, \code{SIsd},
-\code{SI90}, \code{Outlier}).
+A named list with two elements:
+\describe{
+\item{output}{Data frame of complete-case Fup predictions with columns
+for \code{Fup.RF.pred} and Roy AD metrics (\code{SImin}, \code{SImax}, \code{SImean},
+\code{SIsd}, \code{SI90}, \code{Outlier}).}
+\item{missing}{Data frame of chemicals excluded due to incomplete
+descriptor data.}
+}
 }
 \description{
 Retrieves only the descriptors required by the Fup model, harmonizes
 descriptor names to match the Fup model conventions, standardizes model
-inputs, predicts transformed Fup, back-transforms predictions, computes Roy
-et al. applicability-domain metrics, and writes Fup output CSV files.
+inputs, predicts transformed Fup, back-transforms predictions, and computes
+Roy et al. applicability-domain metrics.
 }
 \details{
 Workflow:
@@ -59,10 +57,9 @@ database helpers.
 descriptors with \code{Opera_}.
 \item Restrict to required model descriptors and standardize using
 \code{fup.msd} means/SDs.
-\item Remove incomplete rows and write an incomplete-records file.
+\item Remove incomplete rows (returned in \verb{$missing}).
 \item Predict transformed Fup and back-transform by squaring.
 \item Compute Roy AD metrics with \code{\link[=calc_roy_ad]{calc_roy_ad()}}.
-\item Write Fup predictions with AD annotations to disk.
 }
 }
 \references{

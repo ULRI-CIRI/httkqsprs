@@ -12,6 +12,7 @@ generate_preds(
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   chems = NULL,
   input.folder = getwd(),
+  write.files = TRUE,
   output.folder = tempdir()
 )
 }
@@ -34,6 +35,8 @@ descriptors are queried via database helper functions.}
 \item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
 Defaults to \code{\link{getwd}}.}
 
+\item{write.files}{If true, writes output files to \code{output.folder}. Defaults to true.}
+
 \item{output.folder}{The folder where the output file is placed.
 Defaults to \code{\link{tempdir}}.}
 
@@ -46,10 +49,15 @@ column to use for class-to-quantitative mapping in \code{\link[=calc_papp]{calc_
 \value{
 A named list with:
 \describe{
-\item{Clint}{Data frame returned by \code{\link[=calc_clint]{calc_clint()}}.}
-\item{Fup}{Data frame returned by \code{\link[=calc_fup]{calc_fup()}}.}
-\item{Papp}{Data frame returned by \code{\link[=calc_papp]{calc_papp()}} when available;
-otherwise \code{NULL}.}
+\item{Clint}{Named list returned by \code{\link[=calc_clint]{calc_clint()}}, with elements
+\verb{$output} (complete-case predictions) and \verb{$missing} (excluded
+incomplete cases).}
+\item{Fup}{Named list returned by \code{\link[=calc_fup]{calc_fup()}}, with elements
+\verb{$output} (complete-case predictions) and \verb{$missing} (excluded
+incomplete cases).}
+\item{Papp}{Named list returned by \code{\link[=calc_papp]{calc_papp()}} when available
+(otherwise \code{NULL}), with elements \verb{$output} (predictions) and
+\verb{$missing} (\code{NULL}, as Papp uses imputation instead of exclusion).}
 }
 }
 \description{
