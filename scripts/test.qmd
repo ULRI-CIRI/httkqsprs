@@ -1,0 +1,42 @@
+# Running httkqsprs
+
+This is an example of running `httkqsprs` using a list of CICHEM and data from the pipelines database.  To run, you
+must have an environment variable, `PIPELINES_CONN_STR`, set as demonstrated in `Renviron.example`.
+
+Start the environment and load the package (in development mode):
+
+```{r}
+source('startup.R')
+devtools::load_all(file.path(Sys.getenv("R_ROOT"), 'httkqsprs'))
+```
+
+Run the analysis using a small list of chemicals:
+
+```{r}
+chem.ids <- c(
+  "CICHEM010017986",
+  "CICHEM010028777",
+  "CICHEM010057529",
+  "CICHEM000200048",
+  "CICHEM000200014"
+)
+out <- httkqsprs::generate_preds("June2026", chems = chem.ids)
+```
+
+View the outputs for $CL_{int}$:
+
+```{r}
+out$Clint
+```
+
+View the outputs for $F_{up}$:
+
+```{r}
+out$Fup
+```
+
+View the outputs for $P_{app}$:
+
+```{r}
+out$Papp
+```
