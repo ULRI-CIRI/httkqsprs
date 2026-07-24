@@ -14,6 +14,10 @@ lint:
 format:
   uvx --from air-formatter air format .
 
-# 📚 Document code
+# 📚 Document package
 document:
   R -e "devtools::document('httkqsprs')"
+
+# 📦 Build package
+build:
+  R -e "devtools::build('httkqsprs')"

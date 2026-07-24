@@ -7,3 +7,6 @@ rv
 # quarto render outputs
 scripts/*_files
 scripts/*.html
+
+# package
+*.tar.gz
