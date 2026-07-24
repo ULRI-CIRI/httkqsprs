@@ -1,9 +1,0 @@
-RESHOST="ciri-res-pgsql.ulri.ul.org"
-PORT=5432
-USEUSER="john.wambaugh"
-USEPASSWORD="okkyEe9bkt4y1FuEtYIelg"
-PG_PW="okkyEe9bkt4y1FuEtYIelg"
-VIEWDATABASE="ciexpo_view"
-VIEWUSER="john.wambaugh"
-VIEWPASSWORD="okkyEe9bkt4y1FuEtYIelg"
-PIPELINES_CONN_STR="postgres://john.wambaugh:okkyEe9bkt4y1FuEtYIelg@ciri-res-pgsql.ulri.ul.org:5432/pipelines"
