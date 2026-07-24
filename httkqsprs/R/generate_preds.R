@@ -48,15 +48,21 @@
 #'   column to use for class-to-quantitative mapping in [calc_papp()].
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
+#' @param write.files If true, writes output files to `output.folder`. Defaults to true.
 #' @param output.folder The folder where the output file is placed.
 #'   Defaults to \code{\link{tempdir}}.
 #'
 #' @return A named list with:
 #' \describe{
-#'   \item{Clint}{Data frame returned by [calc_clint()].}
-#'   \item{Fup}{Data frame returned by [calc_fup()].}
-#'   \item{Papp}{Data frame returned by [calc_papp()] when available;
-#'   otherwise `NULL`.}
+#'   \item{Clint}{Named list returned by [calc_clint()], with elements
+#'     `$output` (complete-case predictions) and `$missing` (excluded
+#'     incomplete cases).}
+#'   \item{Fup}{Named list returned by [calc_fup()], with elements
+#'     `$output` (complete-case predictions) and `$missing` (excluded
+#'     incomplete cases).}
+#'   \item{Papp}{Named list returned by [calc_papp()] when available
+#'     (otherwise `NULL`), with elements `$output` (predictions) and
+#'     `$missing` (`NULL`, as Papp uses imputation instead of exclusion).}
 #' }
 #'
 #' @references
@@ -76,7 +82,6 @@
 #'
 #' @import randomForest
 #' @import stringr
-#' @import Rapp
 #' @import DBI
 #' @import RPostgres
 #' @export generate_preds
@@ -88,42 +93,96 @@ generate_preds <- function(
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
   chems = NULL,
   input.folder = getwd(),
+  write.files = TRUE,
   output.folder = tempdir()
-  )
-{
+) {
   if (is.null(output.path)) {
     output.path <- tempdir()
   }
 
   clint <- calc_clint(
     datalabel = Datalabel,
-    opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
     padelpostfix = padelpostfix,
-    input.folder = input.folder,
-    output.folder = output.folder
+    input.folder = input.folder
   )
 
   fup <- calc_fup(
     datalabel = Datalabel,
-    opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
     padelpostfix = padelpostfix,
-    input.folder = input.folder,
-    output.folder = output.folder
+    input.folder = input.folder
   )
 
   papp <- calc_papp(
     datalabel = Datalabel,
-    opera_version = Operaversion,
     chems = chems,
     operapostfix = operapostfix,
     padelpostfix = padelpostfix,
-    input.folder = input.folder,
-    output.folder = output.folder
+    input.folder = input.folder
   )
+
+  if (write.files) {
+    cat("Outputs written to", output.file, "\n")
+    # write clint outputs
+    write.csv(
+      clint$missing,
+      file = paste0(
+        output.folder,
+        "Incomplete_Opera_PaDEL_Clint_predictions_",
+        Datalabel,
+        ".csv"
+      )
+    )
+    write.csv(
+      clint$output,
+      file = paste0(
+        output.folder,
+        "Novel_clint_predictions_with_AD_",
+        Datalabel,
+        "_descs_from_OPERA",
+        Operaversion,
+        ".csv"
+      )
+    )
+
+    # write fup outputs
+    write.csv(
+      Incompletescfup,
+      file = paste0(
+        output.folder,
+        "Incomplete_Opera_PaDEL_fup_predictions_",
+        Datalabel,
+        ".csv"
+      )
+    )
+    write.csv(
+      chemlistsc_fup_narm,
+      file = paste0(
+        output.folder,
+        "Novel_fup_predictions_with_AD_",
+        Datalabel,
+        "_descs_from_OPERA",
+        Operaversion,
+        ".csv"
+      )
+    )
+
+    # write papp outputs
+    write.csv(
+      papp_pred,
+      file = paste0(
+        output.folder,
+        "Novel_papp_predictions_with_AD_",
+        Datalabel,
+        "_descs_from_OPERA",
+        Operaversion,
+        ".csv"
+      )
+    )
+  }
 
   return(list(
     Clint = clint,

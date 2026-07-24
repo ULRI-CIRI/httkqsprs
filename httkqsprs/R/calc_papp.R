@@ -6,11 +6,10 @@
 #' random forest model.
 #'
 #' The function also maps predicted bins to summary quantitative ranges in
-#' `qspr.summary`, producing a character column (`Pab.Quant.Pred`) of the form
-#' `"median,lower,upper"`.
+#' `qspr.summary`, producing three numeric columns (`Pab.Quant.Pred.Median`,
+#' `Pab.Quant.Pred.LowerCI`, `Pab.Quant.Pred.UpperCI`).
 #'
-#' @param datalabel Character scalar used in output filenames.
-#' @param opera_version Character scalar used in output filenames.
+#' @param datalabel Character scalar label for this prediction run.
 #' @param chems Optional character vector of CICHEM identifiers. If provided,
 #'   descriptors are retrieved from the database using [get_padel()] and
 #'   [get_opera()].
@@ -20,15 +19,20 @@
 #'   `chems` is `NULL`.
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
-#' @param output.folder The folder where the output file is placed.
-#'   Defaults to \code{\link{tempdir}}.
 #'
-#' @return A data frame with one row per chemical and columns:
-#'
-#' * `DTXSID` (identifier copied from the first input column)
-#' * `Pab.Class.Pred` (predicted Papp class/bin)
-#' * `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain, `0` = out-of-domain)
-#' * `Pab.Quant.Pred` (comma-delimited quantitative summary from `qspr.summary`)
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{output}{Data frame with one row per chemical and columns:
+#'     `DTXSID` (identifier copied from the first input column),
+#'     `Pab.Class.Pred` (predicted Papp class/bin),
+#'     `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain,
+#'     `0` = out-of-domain), and
+#'     `Pab.Quant.Pred.Median` (median log Papp for the predicted bin),
+#'     `Pab.Quant.Pred.LowerCI` (lower percentile bound), and
+#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from `qspr.summary`.}
+#'   \item{missing}{`NULL`; Papp handles missing descriptors via mean
+#'     imputation rather than case exclusion.}
+#' }
 #'
 #' @details
 #' Required descriptor names are taken from `opt.desc` and expected training-set
@@ -60,12 +64,10 @@
 #' @export calc_papp
 calc_papp <- function(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 ) {
   # Load these from package in case user hasn't loaded whole package:
   papp_opt_desc <- httkqsprs::papp_opt_desc
@@ -74,10 +76,15 @@ calc_papp <- function(
   papp_qspr_summary <- httkqsprs::papp_qspr_summary
 
   # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
-  papp_opera_desc <- unique(c(grep("_pred$", papp_opt_desc, value = TRUE),
-                              "pKa_a_pred", "pKa_b_pred"))
-  papp_padel_desc <- setdiff(papp_opt_desc,
-                             c("fraction_neutral",papp_opera_desc))
+  papp_opera_desc <- unique(c(
+    grep("_pred$", papp_opt_desc, value = TRUE),
+    "pKa_a_pred",
+    "pKa_b_pred"
+  ))
+  papp_padel_desc <- setdiff(
+    papp_opt_desc,
+    c("fraction_neutral", papp_opera_desc)
+  )
   papp_mod_vars <- c(papp_opera_desc, papp_padel_desc, "fraction neutral")
 
   if (is.null(chems)) {
@@ -89,17 +96,33 @@ calc_papp <- function(
 
     missing_opera <- setdiff(papp_opera_desc, names(Opera))
     if (length(missing_opera) > 0) {
-      for (nm in missing_opera) Opera[[nm]] <- NA_real_
+      for (nm in missing_opera) {
+        Opera[[nm]] <- NA_real_
+      }
     }
 
     missing_padel <- setdiff(papp_padel_desc, names(Padel))
     if (length(missing_padel) > 0) {
-      for (nm in missing_padel) Padel[[nm]] <- NA_real_
+      for (nm in missing_padel) {
+        Padel[[nm]] <- NA_real_
+      }
     }
 
-    Opera <- Opera[, c(1, which(names(Opera) %in% papp_opera_desc)), drop = FALSE]
-    Padel <- Padel[, c(1, which(names(Padel) %in% papp_padel_desc)), drop = FALSE]
-    papp_df <- merge(Opera, Padel, by.x = "MoleculeID", by.y = "Name", all.x = TRUE)
+    Opera <- Opera[,
+      c(1, which(names(Opera) %in% papp_opera_desc)),
+      drop = FALSE
+    ]
+    Padel <- Padel[,
+      c(1, which(names(Padel) %in% papp_padel_desc)),
+      drop = FALSE
+    ]
+    papp_df <- merge(
+      Opera,
+      Padel,
+      by.x = "MoleculeID",
+      by.y = "Name",
+      all.x = TRUE
+    )
   } else {
     Padel <- get_padel(
       cichem_list = chems,
@@ -138,7 +161,7 @@ calc_papp <- function(
     if (is.numeric(papp_train_msd[1, this_col])) {
       papp_desc[, this_col] <-
         (papp_desc[, this_col] -
-        papp_train_msd[1, this_col]) /
+          papp_train_msd[1, this_col]) /
         papp_train_msd[2, this_col]
     }
   }
@@ -146,11 +169,11 @@ calc_papp <- function(
   # Assign NA values the mean (0 after standardization) for any missing descriptors:
   papp_desc[is.na(papp_desc)] <- 0
   # Set any infinite descriptor to 100 sd's (outside of DOA):
-inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
-for (col in inf_cols) {
-  inf_rows <- which(is.infinite(papp_desc[[col]]))
-  papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
-}
+  inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
+  for (col in inf_cols) {
+    inf_rows <- which(is.infinite(papp_desc[[col]]))
+    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
+  }
 
   pred <- predict(papp_classmodopt, papp_desc)
 
@@ -160,33 +183,29 @@ for (col in inf_cols) {
   )
 
   papp_pred <- data.frame(
-   MoleculeID = papp_df$MoleculeI,
+    MoleculeID = papp_df$MoleculeI,
     Pab.Class.Pred = pred,
     Pab.Pred.AD = ad$Outlier,
     stringsAsFactors = FALSE
   )
 
+  re_pattern <- "([0-9.]+)\\s*\\(([0-9.]+)\\s*-\\s*([0-9.]+)\\)"
   for (this_bin in sort(as.character(unique(papp_pred$Pab.Class.Pred)))) {
     bin_value <- papp_qspr_summary[paste0("Bin", this_bin), "LogPab3Bin"]
-    bin_value <- gsub(" \\(", ",", bin_value)
-    bin_value <- gsub(" - ", ",", bin_value)
-    bin_value <- gsub("\\)", "", bin_value)
-    papp_pred[as.character(papp_pred$Pab.Class.Pred) == this_bin, "Pab.Quant.Pred"] <- bin_value
+    parts <- regmatches(bin_value, regexec(re_pattern, bin_value))[[1]]
+    rows <- as.character(papp_pred$Pab.Class.Pred) == this_bin
+    papp_pred[rows, "Pab.Quant.Pred.Median"] <- parts[2]
+    papp_pred[rows, "Pab.Quant.Pred.LowerCI"] <- parts[3]
+    papp_pred[rows, "Pab.Quant.Pred.UpperCI"] <- parts[4]
   }
+  papp_pred$Pab.Pred.AD <- as.integer(papp_pred$Pab.Pred.AD)
+  papp_pred$Pab.Quant.Pred.Median <- as.numeric(papp_pred$Pab.Quant.Pred.Median)
+  papp_pred$Pab.Quant.Pred.LowerCI <- as.numeric(
+    papp_pred$Pab.Quant.Pred.LowerCI
+  )
+  papp_pred$Pab.Quant.Pred.UpperCI <- as.numeric(
+    papp_pred$Pab.Quant.Pred.UpperCI
+  )
 
-  output.file <- paste0(
-    output.folder,
-    "Novel_papp_predictions_with_AD_",
-    datalabel,
-    "_descs_from_OPERA",
-    opera_version,
-    ".csv"
-    )
-  write.csv(
-    papp_pred,
-    file = output.file
-    )
-  cat("Papp predictions written to", output.file,"\n")
-
-  return(papp_pred)
+  return(list(output = papp_pred, missing = NULL))
 }

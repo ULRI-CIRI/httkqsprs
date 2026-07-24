@@ -6,18 +6,14 @@
 \usage{
 calc_papp(
   datalabel,
-  opera_version,
   chems = NULL,
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd(),
-  output.folder = tempdir()
+  input.folder = getwd()
 )
 }
 \arguments{
-\item{datalabel}{Character scalar used in output filenames.}
-
-\item{opera_version}{Character scalar used in output filenames.}
+\item{datalabel}{Character scalar label for this prediction run.}
 
 \item{chems}{Optional character vector of CICHEM identifiers. If provided,
 descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
@@ -31,17 +27,20 @@ descriptors are retrieved from the database using \code{\link[=get_padel]{get_pa
 
 \item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
 Defaults to \code{\link{getwd}}.}
-
-\item{output.folder}{The folder where the output file is placed.
-Defaults to \code{\link{tempdir}}.}
 }
 \value{
-A data frame with one row per chemical and columns:
-\itemize{
-\item \code{DTXSID} (identifier copied from the first input column)
-\item \code{Pab.Class.Pred} (predicted Papp class/bin)
-\item \code{Pab.Pred.AD} (applicability-domain flag; \code{1} = in-domain, \code{0} = out-of-domain)
-\item \code{Pab.Quant.Pred} (comma-delimited quantitative summary from \code{qspr.summary})
+A named list with two elements:
+\describe{
+\item{output}{Data frame with one row per chemical and columns:
+\code{DTXSID} (identifier copied from the first input column),
+\code{Pab.Class.Pred} (predicted Papp class/bin),
+\code{Pab.Pred.AD} (applicability-domain flag; \code{1} = in-domain,
+\code{0} = out-of-domain), and
+\code{Pab.Quant.Pred.Median} (median log Papp for the predicted bin),
+\code{Pab.Quant.Pred.LowerCI} (lower percentile bound), and
+\code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from \code{qspr.summary}.}
+\item{missing}{\code{NULL}; Papp handles missing descriptors via mean
+imputation rather than case exclusion.}
 }
 }
 \description{
@@ -52,8 +51,8 @@ random forest model.
 }
 \details{
 The function also maps predicted bins to summary quantitative ranges in
-\code{qspr.summary}, producing a character column (\code{Pab.Quant.Pred}) of the form
-\code{"median,lower,upper"}.
+\code{qspr.summary}, producing three numeric columns (\code{Pab.Quant.Pred.Median},
+\code{Pab.Quant.Pred.LowerCI}, \code{Pab.Quant.Pred.UpperCI}).
 
 Required descriptor names are taken from \code{opt.desc} and expected training-set
 means/SDs from \code{train_msd}. If a required descriptor is absent in retrieved
