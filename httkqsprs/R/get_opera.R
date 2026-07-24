@@ -1,48 +1,53 @@
 #' Retrieve OPeRA descriptors from SQL database
-#' 
+#'
 #' @author John Wambaugh and Andy Shapiro
 #'
 #' @references
 #' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical properties and environmental fate endpoints." Journal of cheminformatics 10.1 (2018): 10.
-#' 
+#'
 #' @export get_opera
-get_opera <- function(cichem_list = NULL,
-                      descriptors = NULL,
-                      opera_version = "2.9")
-{
-  if (nchar(Sys.getenv("PIPELINES_CONN_STR")) == 0) 
+get_opera <- function(
+  cichem_list = NULL,
+  descriptors = NULL,
+  opera_version = "2.9"
+) {
+  if (nchar(Sys.getenv("PIPELINES_CONN_STR")) == 0) {
     stop("Environmental variable PIPELINES_CONN_STR is not set")
-  
+  }
+
   conn <- pg_connection_from_env('PIPELINES_CONN_STR')
 
   # ── Parameters ────────────────────────────────────────────────────────────────
   # parameters are set by call to function
-  column_names  <- descriptors # NULL = all descriptors; or e.g. c("ALogP", "AMR")
+  column_names <- descriptors # NULL = all descriptors; or e.g. c("ALogP", "AMR")
 
-# Convert names as given by OPERA Excel output into SQL names:
-Opera.SQL.names <- paste0("opera_",
-  gsub("_pred","",tolower(column_names)),
-  "_endpoint") 
-# Make the names of the tables match the database:
-Opera.SQL.names <- gsub("logws","ws", Opera.SQL.names)
-Opera.SQL.names <- gsub("logbcf","bcf", Opera.SQL.names)
-Opera.SQL.names <- gsub("logkm","km", Opera.SQL.names)
-Opera.SQL.names <- gsub("logvp","vp", Opera.SQL.names)
-Opera.SQL.names <- gsub("logoh","aoh", Opera.SQL.names)
-Opera.SQL.suffix <- rep("prediction",length(Opera.SQL.names))
-# Make the names of the columns match the database:
-Opera.SQL.suffix[regexpr("logd55", Opera.SQL.names)!=-1] <- "logd55"
-Opera.SQL.suffix[regexpr("logd74", Opera.SQL.names)!=-1] <- "logd74"
-Opera.SQL.suffix[regexpr("pka_a", Opera.SQL.names)!=-1] <- "pka_a"
-Opera.SQL.suffix[regexpr("pka_b", Opera.SQL.names)!=-1] <- "pka_b"
-# Can't change this until we have identified the columns:
-Opera.SQL.names <- gsub("logd55","logd", Opera.SQL.names)
-Opera.SQL.names <- gsub("logd74","logd", Opera.SQL.names)
-Opera.SQL.names <- gsub("pka_a","pka", Opera.SQL.names)
-Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
+  # Convert names as given by OPERA Excel output into SQL names:
+  Opera.SQL.names <- paste0(
+    "opera_",
+    gsub("_pred", "", tolower(column_names)),
+    "_endpoint"
+  )
+  # Make the names of the tables match the database:
+  Opera.SQL.names <- gsub("logws", "ws", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logbcf", "bcf", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logkm", "km", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logvp", "vp", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logoh", "aoh", Opera.SQL.names)
+  Opera.SQL.suffix <- rep("prediction", length(Opera.SQL.names))
+  # Make the names of the columns match the database:
+  Opera.SQL.suffix[regexpr("logd55", Opera.SQL.names) != -1] <- "logd55"
+  Opera.SQL.suffix[regexpr("logd74", Opera.SQL.names) != -1] <- "logd74"
+  Opera.SQL.suffix[regexpr("pka_a", Opera.SQL.names) != -1] <- "pka_a"
+  Opera.SQL.suffix[regexpr("pka_b", Opera.SQL.names) != -1] <- "pka_b"
+  # Can't change this until we have identified the columns:
+  Opera.SQL.names <- gsub("logd55", "logd", Opera.SQL.names)
+  Opera.SQL.names <- gsub("logd74", "logd", Opera.SQL.names)
+  Opera.SQL.names <- gsub("pka_a", "pka", Opera.SQL.names)
+  Opera.SQL.names <- gsub("pka_b", "pka", Opera.SQL.names)
 
   # ── Build SQL Query ─────────────────────────
-  var.names <- paste0('\"',
+  var.names <- paste0(
+    '\"',
     paste0(
       paste0(
         Opera.SQL.names,
@@ -50,11 +55,14 @@ Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
         Opera.SQL.suffix,
         "\" AS \"",
         descriptors
-        ),
-      collapse='\",\n\"'),
-    '\"\n')
+      ),
+      collapse = '\",\n\"'
+    ),
+    '\"\n'
+  )
 
-  query <- sprintf(' 
+  query <- sprintf(
+    ' 
   SELECT "chemical_identifier"."cichem" AS "cichem",
   %s
   FROM "opera_prediction_molecule"
@@ -103,18 +111,19 @@ Opera.SQL.names <- gsub("pka_b","pka", Opera.SQL.names)
  WHERE "chemical_identifier"."cichem" IN (?cichems) AND 
     "opera_prediction_molecule"."opera_version" = ?opera_version
  ORDER BY "opera_prediction_molecule"."opera_version" DESC
- ', var.names)
+ ',
+    var.names
+  )
 
-Opera <- try(as.data.frame(pg_query(
+  Opera <- try(as.data.frame(pg_query(
     conn,
     query,
     schema = "public",
     opera_version = opera_version,
     cichems = pg_escape_vector(cichem_list)
-    )
-  ))
+  )))
 
-  colnames(Opera) <- c("MoleculeID",descriptors)
+  colnames(Opera) <- c("MoleculeID", descriptors)
 
   rownames(Opera) <- Opera$MoleculeID
 

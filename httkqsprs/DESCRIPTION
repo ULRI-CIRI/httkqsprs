@@ -2,7 +2,7 @@ Package: httkqsprs
 Title: Chemical-Specific HTTK Parameters from QSPR Models
 Version: 0.0.5
 Authors@R: c(
-           person("John", "Wambaugh", email = "John.Wambaugh@UL.org", 
+           person("John", "Wambaugh", email = "John.Wambaugh@UL.org",
              role = c("aut", "cre"),
              comment = c(ORCID = "0000-0002-4024-534X")),
            person("Daniel", "Dawson",
@@ -14,28 +14,28 @@ Authors@R: c(
            person("Andy", "Shapiro",
              role = c("aut"), comment = c(ORCID = "0000-0002-5233-8092"))
            )
-Description: The Dawson et al. (2021) <doi:10.1021/acs.est.0c06117> 
-              quantiative structure-property relationship (QSPR) models make 
-              chemical-specific predictions of parameters needed for HTTK 
-              (high throughput toxicokinetics). Two parameters, typically measured 
+Description: The Dawson et al. (2021) <doi:10.1021/acs.est.0c06117>
+              quantiative structure-property relationship (QSPR) models make
+              chemical-specific predictions of parameters needed for HTTK
+              (high throughput toxicokinetics). Two parameters, typically measured
               in vitro, are predicted: CLint and fup.
-              CLint is the intrinsic hepatic clearance (uL/min/million hepatocytes) from a 
-              pooled donor suspended hepatocyte incubation in vitro assay. Clint is 
+              CLint is the intrinsic hepatic clearance (uL/min/million hepatocytes) from a
+              pooled donor suspended hepatocyte incubation in vitro assay. Clint is
               correlated with the rate of metabolic clearance of a
-              chemical by the liver. Dawson et al. (2021) predicts CLint using a categorical 
-              (slow / moderate /fast) random forest model. Fup is the chemical fraction 
+              chemical by the liver. Dawson et al. (2021) predicts CLint using a categorical
+              (slow / moderate /fast) random forest model. Fup is the chemical fraction
               unbound in plasma as measured in vitro. Fup characterize the extent to which
               the chemical binds to proteins and other plasma constituents. Higher binding
               can reduce the amount of chemical available for clearance. Dawson et al. (2021)
               predicts Fup using a regression (continuous) random forest model. Both QSPR
               models were evaluated as part of Wambaugh et al. (2026) <doi:10.1016/j.tiv.2025.106150>
-              Also included is the Honda et al. (2025) <doi:10.1016/j.tiv.2025.106150> QSPR model 
+              Also included is the Honda et al. (2025) <doi:10.1016/j.tiv.2025.106150> QSPR model
               for predicting Caco-2 membrane permeability (Papp in units of cm/s).
               License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 LazyData: true
 Encoding: UTF-8
-Imports: randomForest, caret, Rapp, RPostgres
+Imports: randomForest, caret, RPostgres, httk
 URL: https://chemicalinsights.ul.org/
 Roxygen: list(markdown = TRUE)
 Maintainer: John Wambaugh <John.Wambaugh@UL.org>

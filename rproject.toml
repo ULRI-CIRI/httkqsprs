@@ -1,0 +1,13 @@
+[project]
+name = "dawson2021-httkqspr"
+r_version = "4.5"
+
+repositories = [
+    {alias = "CRAN", url = "https://cran.r-project.org/"},
+]
+
+dependencies = [
+    { name = "httkqsprs", path = "./httkqsprs", dependencies_only = true },
+    "devtools",
+    "tibble",
+]
