@@ -6,3 +6,11 @@ Dawson, D., B. Ingle, K. Phillips, J. Nichols, J. Wambaugh, AND R. Tornero-Velez
 In the zip file are a script and information to allow for the prediction of intrinsic hepatic clearance (Clint) and fraction unbound by protein (fup) parameters for novel chemicals. Please see the file "Information_for_User.txt" for instructions and additional information on how to use the script.  
 
 The views expressed here are those of the authors and do not necessarily represent the views or the policies of the U.S. Environmental Protection Agency.                         
+
+## Installation
+
+To install, install [rv](https://a2-ai.github.io/rv-docs/). Then, run the command:
+
+```bash
+rv sync
+```
