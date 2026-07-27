@@ -1,8 +1,11 @@
+# RStudio
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
 # R secrets
+.env
 .Renviron
 
 # rv package management
