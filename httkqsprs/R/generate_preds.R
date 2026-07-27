@@ -125,13 +125,13 @@ generate_preds <- function(
   )
 
   if (write.files) {
-    cat("Outputs written to", output.file, "\n")
+    cat("Outputs written to", output.folder, "\n")
     # write clint outputs
     write.csv(
       clint$missing,
       file = paste0(
         output.folder,
-        "Incomplete_Opera_PaDEL_Clint_predictions_",
+        "Incomplete_Clint_predictions_",
         Datalabel,
         ".csv"
       )
@@ -150,16 +150,16 @@ generate_preds <- function(
 
     # write fup outputs
     write.csv(
-      Incompletescfup,
+      fup$missing,
       file = paste0(
         output.folder,
-        "Incomplete_Opera_PaDEL_fup_predictions_",
+        "Incomplete_fup_predictions_",
         Datalabel,
         ".csv"
       )
     )
     write.csv(
-      chemlistsc_fup_narm,
+      fup$output,
       file = paste0(
         output.folder,
         "Novel_fup_predictions_with_AD_",
@@ -172,13 +172,22 @@ generate_preds <- function(
 
     # write papp outputs
     write.csv(
-      papp_pred,
+      papp$output,
       file = paste0(
         output.folder,
         "Novel_papp_predictions_with_AD_",
         Datalabel,
         "_descs_from_OPERA",
         Operaversion,
+        ".csv"
+      )
+    )
+    write.csv(
+      papp$missing,
+      file = paste0(
+        output.folder,
+        "Incomplete_papp_predictions_",
+        Datalabel,
         ".csv"
       )
     )
