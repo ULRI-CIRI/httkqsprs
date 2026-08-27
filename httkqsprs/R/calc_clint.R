@@ -142,7 +142,7 @@ calc_clint <- function(
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
 
   set.seed(1255)
-  chemlistpredictClint <- predict(ClintClass3Mod, chemlistsc_Clint_narm)
+  chemlistpredictClint <- stats::predict(ClintClass3Mod, chemlistsc_Clint_narm)
   chemlistsc_Clint_narm$ClintPredictBin <- chemlistpredictClint
 
   chemlistsc_Clint_narm$ClintPredictBin_MD <- ifelse(

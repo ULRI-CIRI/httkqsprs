@@ -158,7 +158,7 @@ calc_fup <- function(
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
 
   set.seed(1255)
-  chemlistpredictfup <- predict(RF.fit, chemlistsc_fup_narm)
+  chemlistpredictfup <- stats::predict(RF.fit, chemlistsc_fup_narm)
   chemlistsc_fup_narm$Fup.RF.pred <- chemlistpredictfup^2
   chemlistsc_fup_narm$Fup.RF.pred <- signif(
     chemlistsc_fup_narm$Fup.RF.pred,
