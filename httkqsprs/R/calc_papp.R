@@ -175,7 +175,7 @@ calc_papp <- function(
     papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
   }
 
-  pred <- predict(papp_classmodopt, papp_desc)
+  pred <- stats::predict(papp_classmodopt, papp_desc)
 
   ad <- calc_roy_ad(
     data = papp_desc,
