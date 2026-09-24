@@ -17,6 +17,14 @@
 - The `pipelines` Python repo at `../pipelines` is **read-only for this plan**. Do not create, modify, or delete any file in it.
 - `pipelines-r` lives at `../pipelines-r` relative to this repo's root. Both are sibling directories under `Projects/`.
 - Predictions must be **bit-for-bit identical** to current `main`. Any numeric difference is a bug, not an improvement.
+- **Papp exception (verified in Task 1).** `calc_papp()` runs `randomForest` unseeded, and `randomForest` breaks tied class votes using the RNG. Exactly 2 of 4052 April-2026 chemicals have perfect ties, so their `Pab.Class.Pred` — and the `Pab.Quant.Pred.*` bin lookups keyed on it — flip at random between runs:
+
+  | chemical | class 1 | class 2 | class 3 |
+  |---|---|---|---|
+  | `DTXSID4060109` | 54 | 223 | 223 |
+  | `DTXSID8062575` | 58 | 221 | 221 |
+
+  Therefore **Papp parity is asserted on the vote matrix, never on the predicted class.** Votes are fully deterministic; only the argmax tie-break consumes randomness. Vote comparison is also strictly *more* sensitive than class comparison — it catches a single-vote shift that argmax would hide. Do not add `set.seed()` to package code to paper over this: that is a behaviour change and is out of scope for this refactor.
 - Descriptor retrieval names: OPERA names always carry a `_pred` suffix; PaDEL names never do.
 - `calc_fup()`'s `Opera_` / `padel_` column prefixing happens **after** retrieval, inside `calc_fup()`.
 - `papp` requests `pKa_a_pred` and `pKa_b_pred` purely so `httk::calc_ionization()` can derive `fraction_neutral`; they are never model inputs.
@@ -35,6 +43,7 @@ These are failure modes the spec implies but that the happy-path golden tests wo
 3. **Chemical present in OPERA but absent from PaDEL** — the CSV merge is `all.x = TRUE`, so the row survives with `NA` PaDEL values and must be reported in `$missing`, not silently predicted. (Task 7)
 4. **`NA` pKa values** — `httk::calc_ionization()` receives `NA` donors/acceptors, so `fraction_neutral` becomes `NA` and must flow into the mean-imputation path rather than aborting. (Task 6)
 5. **Duplicate `MoleculeID` rows from the database** — a chemical with two OPERA prediction rows silently fan-outs the merge, inflating row counts. Expect one row per `MoleculeID`. (Task 8)
+6. **Tied Papp votes** — the two tie chemicals named in Global Constraints must keep identical *vote counts* across the refactor even though their predicted class is unstable. A class-based assertion on those rows is flaky and must not be written. (Tasks 1, 6, 10)
 
 ---
 
@@ -90,9 +99,9 @@ Everything downstream compares against these artifacts. If they are wrong, every
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: `baseline/descriptor-names.rds` (named list of the three `list(opera=, padel=)` pairs), `baseline/golden-clint.rds`, `baseline/golden-fup.rds`, `baseline/golden-papp.rds`, `baseline/incomplete-clint.rds`, `baseline/incomplete-fup.rds` — all captured from current `main` behaviour
+- Produces: `baseline/descriptor-names.rds` (named list of the three `list(opera=, padel=)` pairs), `baseline/golden-clint.rds`, `baseline/golden-fup.rds`, `baseline/golden-papp.rds`, `baseline/golden-papp-votes.rds`, `baseline/incomplete-clint.rds`, `baseline/incomplete-fup.rds` — all captured from current `main` behaviour
 
-- [ ] **Step 1: Confirm you are on the feature branch with a clean tree**
+- [x] **Step 1: Confirm you are on the feature branch with a clean tree**
 
 ```bash
 git branch --show-current   # must print: refactor/decouple-db-access
@@ -101,16 +110,21 @@ git status --short          # must print nothing
 
 If the branch does not exist: `git checkout -b refactor/decouple-db-access`. Never work on `main`.
 
-- [ ] **Step 2: Ignore the baseline directory**
+- [x] **Step 2: Ignore the baseline directory**
 
 Append to `.gitignore` (create the file if absent):
 
 ```gitignore
-# Local baseline artifacts captured during the DB-decoupling refactor
-baseline/
+# Local baseline artifacts captured during the DB-decoupling refactor.
+# The capture scripts are tracked; the .rds outputs they produce are not
+# (large, and locally reproducible by rerunning the scripts).
+baseline/*
+!baseline/capture-*.R
 ```
 
-- [ ] **Step 3: Capture the descriptor names the current code derives**
+**Do not write plain `baseline/` here.** Git does not descend into an ignored *directory*, so a later `!baseline/capture-*.R` negation cannot rescue those files and Step 7's `git add` fails. The `baseline/*` form ignores the directory's contents while leaving the negation effective. As a bonus, throwaway diagnostic scripts named `_*.R` stay ignored automatically.
+
+- [x] **Step 3: Capture the descriptor names the current code derives**
 
 Create `baseline/capture-descriptor-names.R`:
 
@@ -168,12 +182,14 @@ saveRDS(
 str(list(clint = clint, fup = fup, papp = papp))
 ```
 
-- [ ] **Step 4: Run it and record the output**
+- [x] **Step 4: Run it and record the output**
 
 Run: `Rscript baseline/capture-descriptor-names.R`
 Expected: prints three `$opera` / `$padel` character vectors and writes `baseline/descriptor-names.rds`. Every `$opera` entry must end in `_pred`; no `$padel` entry may. If that invariant fails, stop and report — the spec's union assumption is void.
 
-- [ ] **Step 5: Regenerate the committed `Novel_*` outputs from `main` and verify they reproduce**
+**Result (2026-09-24): invariant holds.** Counts are `clint` opera 8 / padel 32, `fup` 4 / 26, `papp` 6 / 20.
+
+- [x] **Step 5: Regenerate the committed `Novel_*` outputs from `main` and verify they reproduce**
 
 Create `baseline/capture-golden.R`:
 
@@ -237,21 +253,78 @@ r3 <- compare(
 cat("\nALL MATCH:", all(r1, r2, r3), "\n")
 ```
 
-- [ ] **Step 6: Run it and act on the result**
+- [x] **Step 6: Run it and act on the result**
 
 Run: `Rscript baseline/capture-golden.R`
-Expected: `ALL MATCH: TRUE`.
+Expected as originally written: `ALL MATCH: TRUE`.
 
-If any comparison is `FALSE`: **do not proceed silently.** The committed `Novel_*` files are stale. Report to the human partner which endpoint differs and how. The freshly captured `baseline/golden-*.rds` files become the authoritative baseline regardless — they are what `main` actually produces today, which is what this refactor must preserve.
+**Result (2026-09-24): `ALL MATCH: FALSE`, investigated and found benign.** This step originally claimed that a `FALSE` means "the committed `Novel_*` files are stale". That diagnosis was wrong and is superseded by:
+
+| endpoint | verdict | cause |
+|---|---|---|
+| Fup | exact match | — |
+| Clint | **false alarm** | `ClintPredictBin` is a factor in fresh output but reads back as integer from CSV. 0 of 4043 values disagree compared as character. |
+| Papp | **2 rows differ** | The two tied chemicals in Global Constraints. Not stale, not drift — a coin flip. |
+
+`all.equal()`'s alarming `Mean relative difference: 8.52381` averages only over *differing* elements: `(20-2.1)/2.1 = 8.524`. It described one row, not a systematic shift.
+
+Ruled out by inspection: package drift (`randomForest` 4.7-1.2, `caret` 7.0-1, `httk` 2.7.4, `stringr` 1.6.0 all identical between committed and working `rv.lock`), row misalignment, and duplicate `MoleculeID`s.
+
+The captured `baseline/golden-*.rds` files are the authoritative baseline — they are what `main` produces today.
+
+- [ ] **Step 6b: Capture the deterministic Papp vote matrix**
+
+Because `Pab.Class.Pred` is unstable for tied chemicals, Papp parity is asserted on votes. Create `baseline/capture-papp-votes.R`:
+
+```r
+# Captures the randomForest vote matrix behind the Papp predictions.
+# Votes are deterministic; only the argmax tie-break consumes the RNG, so this
+# matrix - not Pab.Class.Pred - is the parity baseline for Papp.
+#
+# calc_papp() does not expose its prepared descriptor matrix on `main`, so we
+# intercept the predict() call rather than duplicating the preparation logic.
+# Task 6 exposes it directly, after which this trace can be dropped.
+suppressMessages(devtools::load_all("httkqsprs", quiet = TRUE))
+
+trace(
+  what = "predict.randomForest",
+  where = asNamespace("randomForest"),
+  tracer = quote({
+    if (!exists(".capt_nd", envir = globalenv())) {
+      assign(".capt_nd", newdata, envir = globalenv())
+      assign(".capt_mod", object, envir = globalenv())
+    }
+  }),
+  print = FALSE
+)
+invisible(httkqsprs::calc_papp("NewHTTK_April_2026", input.folder = "scripts"))
+untrace("predict.randomForest", where = asNamespace("randomForest"))
+
+votes <- predict(.capt_mod, .capt_nd, type = "vote", norm.votes = FALSE)
+saveRDS(votes, "baseline/golden-papp-votes.rds")
+
+top2 <- t(apply(votes, 1, function(v) sort(v, decreasing = TRUE)[1:2]))
+tied <- which(top2[, 1] == top2[, 2])
+cat("rows scored:", nrow(votes), " tied rows:", length(tied), "\n")
+print(votes[tied, , drop = FALSE])
+```
+
+Run: `Rscript baseline/capture-papp-votes.R`
+Expected: `rows scored: 4052  tied rows: 2`, and the two printed vote rows match the Global Constraints table exactly. If the tie count or the vote counts differ, the environment has shifted underneath this plan — stop and report rather than re-baselining.
 
 - [ ] **Step 7: Commit the capture scripts**
 
 ```bash
-git add .gitignore baseline/capture-descriptor-names.R baseline/capture-golden.R
+git add .gitignore rproject.toml rv.lock \
+  baseline/capture-descriptor-names.R \
+  baseline/capture-golden.R \
+  baseline/capture-papp-votes.R
 git commit -m "chore: add baseline capture scripts for DB-decoupling refactor"
 ```
 
 Note `baseline/*.rds` are git-ignored by design — they are large and locally reproducible.
+
+**Environment note (approved 2026-09-24):** `rproject.toml` moves `r_version` from 4.5 to 4.6 because only R 4.6.1 is installed locally and the 4.5 pin is unsatisfiable. `rv.lock` picks up incidental bumps as a result, but all four model-critical packages are unchanged, so model math is unaffected.
 
 ---
 
@@ -394,6 +467,13 @@ print(file.size(list.files(
 ```
 
 The golden `.rds` files store exact doubles and preserve the factor class of `ClintPredictBin`, avoiding CSV round-trip precision loss.
+
+**Tie guard (see Global Constraints).** The fixture subset must contain neither `DTXSID4060109` nor `DTXSID8062575`; their Papp class is decided by a coin flip and would make the Task 6 golden test intermittently fail. The selection above draws Papp chemicals via `head()` of each class and via `Pab.Pred.AD == 1` (both tied chemicals have `Pab.Pred.AD == 0`), so it should exclude them already — but assert it rather than assume it. Append to the script:
+
+```r
+tied <- c("DTXSID4060109", "DTXSID8062575")
+stopifnot(!any(tied %in% selected))
+```
 
 - [ ] **Step 4: Write the shared test helper**
 
@@ -917,6 +997,14 @@ git commit -m "refactor: calc_fup() accepts a descriptor frame"
 **Interfaces:**
 - Consumes: `required_descriptors("papp")`, `subset_descriptors()` from Tasks 3–4
 - Produces: `calc_papp(descriptors)` returning `list(output = <data.frame>, missing = NULL)`. `output` carries `MoleculeID`, `Pab.Class.Pred`, `Pab.Pred.AD`, `Pab.Quant.Pred.Median`, `Pab.Quant.Pred.LowerCI`, `Pab.Quant.Pred.UpperCI`.
+
+**Tie handling (see Global Constraints).** The golden test below compares `output` directly, which is safe *only* because Task 2 Step 3 asserts the fixture subset excludes both tied chemicals. In addition, expose the prepared descriptor matrix through an internal helper (e.g. `prepare_papp_descriptors(descriptors)`) so the vote matrix can be asserted without the `trace()` workaround Task 1 needed, and add a test comparing
+
+```r
+predict(papp_classmodopt, prepare_papp_descriptors(d), type = "vote", norm.votes = FALSE)
+```
+
+against `baseline/golden-papp-votes.rds` for the full April-2026 input. Never assert on `Pab.Class.Pred` for a tied chemical.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1676,6 +1764,8 @@ This is the gate for Task 11. Do not delete the package's database code until th
 **Interfaces:**
 - Consumes: `get_descriptors()`, `predict()` from Tasks 8–9; the unmodified database path on `main`
 - Produces: a pass/fail parity report
+
+**Tie guard (see Global Constraints).** This compares `Pab.Class.Pred` for 8 chemicals. Before trusting a mismatch, check whether the offending chemical has a tied vote — a tied row flipping is expected noise, not a parity failure. If any of the 8 turns out to be tied, swap it for an untied chemical rather than weakening the assertion.
 
 - [ ] **Step 1: Capture the `main` database path output**
 
