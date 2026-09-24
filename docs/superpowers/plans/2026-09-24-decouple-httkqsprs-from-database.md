@@ -1329,7 +1329,7 @@ frame.
 - Consumes: `required_descriptors()`, `calc_clint()`, `calc_fup()`, `calc_papp()`
 - Produces: `read_descriptor_csvs(datalabel, input.folder, operapostfix, padelpostfix)` (internal) returning a wide descriptor frame; `generate_preds(Datalabel, ...)` returning `list(Clint =, Fup =, Papp =)` with the same shape as before. `scripts/ExternalWorkflowDemo.R` depends on this signature.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `httkqsprs/tests/testthat/test-generate-preds.R`:
 
@@ -1431,12 +1431,41 @@ Add `withr` to `Suggests` in `httkqsprs/DESCRIPTION`:
 Suggests: testthat (>= 3.0.0), withr
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+**Result: done.** `withr` 3.0.3 was already installed, so no dependency
+resolution was needed.
+
+**Two tests were added beyond the plan's four.**
+
+*Test 5 — missing input file.* `read_descriptor_csvs()` gains an explicit
+`file.exists()` check (Step 3), but nothing asserted it fires. The test calls
+`generate_preds()` against an empty temp folder and requires the error message
+to name the absent path, so the guard cannot silently regress into R's much
+vaguer `invalid 'description' argument`.
+
+*Test 6 — Review Focus 7 at the reader boundary.* This is the more important
+of the two. Five of the six constant Papp descriptors (`MDEC_23`, `WTPT_3`,
+`MDEO_11`, `nbRotBd`, `WTPT_4`) are PaDEL-assigned but **do** exist as columns
+in the OPERA export. `read_descriptor_csvs()` is the first place in the
+refactor where both files are in scope simultaneously, so it is the first place
+they could accidentally be sourced from OPERA — which would silently change
+every Papp prediction. The test reads the fixtures through the real reader and
+asserts all six are still constant after `prepare_papp_descriptors()`.
+
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `R -e "devtools::test('httkqsprs', filter = 'generate-preds')"`
 Expected: FAIL — `generate_preds()` still calls `calc_clint(datalabel = ...)`.
 
-- [ ] **Step 3: Write the CSV reader**
+**Result: `FAIL 6 | WARN 0 | SKIP 0 | PASS 0`** — red for exactly the predicted
+reason, `unused arguments (datalabel = Datalabel, chems = chems, ...)` from all
+three stale `calc_*` call sites, plus
+`could not find function "read_descriptor_csvs"`.
+
+This also closes the interim breakage knowingly introduced in Task 4:
+`generate_preds()` has been calling the old `calc_*` signatures since then, with
+no test covering it. Task 7 is where that is repaired.
+
+- [x] **Step 3: Write the CSV reader**
 
 Create `httkqsprs/R/read_descriptors.R`:
 
@@ -1498,7 +1527,7 @@ read_descriptor_csvs <- function(
 }
 ```
 
-- [ ] **Step 4: Rewrite `generate_preds()`**
+- [x] **Step 4: Rewrite `generate_preds()`**
 
 In `httkqsprs/R/generate_preds.R`, replace the function body's three `calc_*` calls and the signature with:
 
@@ -1543,23 +1572,72 @@ The `if (write.files)` block and the `return(list(...))` are unchanged **except*
 
 Remove the `@param chems` roxygen tag and the `@import DBI` / `@import RPostgres` tags from this file's roxygen block.
 
-- [ ] **Step 5: Run the tests**
+**Result: done, code block used verbatim.** Two additional findings:
+
+*The roxygen block documented two arguments the signature never had* —
+`@param papp_model` and `@param papp_model_label`. Same class of pre-existing
+doc rot as the `conn_str` tag removed in Task 5. Both deleted; otherwise
+`R CMD check` reports documented-but-absent arguments.
+
+*Removing the `@import` tags is safe, and was verified rather than assumed.*
+A grep for bare (non-namespaced) calls to `dbConnect`, `dbGetQuery`,
+`dbExecute`, `dbDisconnect`, `sqlInterpolate`, `dbQuoteLiteral`,
+`dbQuoteIdentifier`, `Postgres`, `ANSI`, and `SQL` across all of `httkqsprs/R/`
+returned **zero matches** — `pg_utils.R` qualifies every call as `DBI::` or
+`RPostgres::`. So dropping `import(DBI)` / `import(RPostgres)` from NAMESPACE
+breaks nothing at runtime. `generate_preds.R` was the only file carrying those
+tags.
+
+Note this narrows but does not close the Task 11 `DBI` gap: `DBI::` calls still
+require `DBI` in `DESCRIPTION` `Imports`, where it is still absent. `pg_utils.R`
+is deleted in Task 11, which resolves it.
+
+- [x] **Step 5: Run the tests**
 
 Run: `R -e "devtools::document('httkqsprs'); devtools::test('httkqsprs', filter = 'generate-preds')"`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 6: Run the whole suite**
+**Result: `FAIL 0 | WARN 0 | SKIP 0 | PASS 16`** across 6 tests (1.5s).
+
+`document()` rewrote `NAMESPACE` and `man/generate_preds.Rd` only. The NAMESPACE
+diff is exactly the two deletions and nothing else:
+
+```diff
+-import(DBI)
+-import(RPostgres)
+```
+
+**Review Focus 3 resolved: there are 0 natural OPERA-only chemicals in the
+fixture**, confirming the plan's prediction, so the test exercised its
+synthesized branch (drop one chemical from PaDEL). The orphan was correctly
+absent from `Clint$output` and present in `Clint$missing`, proving the
+left-outer merge plus `complete.cases()` exclusion behaves as intended.
+
+- [x] **Step 6: Run the whole suite**
 
 Run: `R -e "devtools::test('httkqsprs')"`
 Expected: PASS, all tests across all five test files, 0 failures.
 
-- [ ] **Step 7: Commit**
+**Result: `FAIL 0 | WARN 0 | SKIP 0 | PASS 63`** in 13.0s (47 + 16 new).
+
+- [x] **Step 7: Commit**
 
 ```bash
 uvx --from air-formatter air format .
 git add httkqsprs
 git commit -m "refactor: generate_preds() reads CSVs and delegates to calc_*"
 ```
+
+**Result: `cd4f490`, 6 files changed, +244/-90.** Only the touched files were
+formatted, per the standing deviation; air reported no changes needed.
+
+**Still open after Task 7: `calc_papp()` has no zero-row guard.** Task 6's note
+deferred the decision to here on the theory that the OPERA-without-PaDEL case
+might produce an empty frame. It does not — that path yields a frame with `NA`
+PaDEL values, not zero rows, and Papp imputes rather than excludes. A zero-row
+frame now requires a zero-row OPERA CSV. The guard is therefore still absent and
+still unmirrored between the three `calc_*` functions; left for a follow-up
+decision rather than expanded into silently.
 
 ---
 
