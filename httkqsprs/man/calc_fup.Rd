@@ -4,32 +4,12 @@
 \alias{calc_fup}
 \title{Calculate Fup predictions and Roy AD metrics}
 \usage{
-calc_fup(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-)
+calc_fup(descriptors)
 }
 \arguments{
-\item{datalabel}{Character scalar used in output filenames.}
-
-\item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
-\code{\link[=get_opera]{get_opera()}}.}
-
-\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
-Defaults to \code{\link{getwd}}.}
-
-\item{conn_str}{Optional PostgreSQL connection string used by descriptor
-retrieval helpers when \code{chems} is provided.}
+\item{descriptors}{A data frame keyed on \code{MoleculeID} containing at least
+the columns named by \code{required_descriptors("fup")}. Extra columns are
+ignored.}
 }
 \value{
 A named list with two elements:
@@ -42,17 +22,15 @@ descriptor data.}
 }
 }
 \description{
-Retrieves only the descriptors required by the Fup model, harmonizes
-descriptor names to match the Fup model conventions, standardizes model
-inputs, predicts transformed Fup, back-transforms predictions, and computes
-Roy et al. applicability-domain metrics.
+Harmonizes descriptor names to match the Fup model conventions,
+standardizes model inputs, predicts transformed Fup, back-transforms
+predictions, and computes Roy et al. applicability-domain metrics.
 }
 \details{
 Workflow:
 \enumerate{
 \item Derive model variables from \code{RF.fit$importance}.
-\item Retrieve only required OPERA and PaDEL descriptors from CSV files or
-database helpers.
+\item Subset \code{descriptors} to only the required OPERA and PaDEL columns.
 \item Prefix matching PaDEL descriptors with \code{padel_} and OPERA
 descriptors with \code{Opera_}.
 \item Restrict to required model descriptors and standardize using
