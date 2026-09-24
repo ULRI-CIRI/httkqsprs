@@ -1066,12 +1066,18 @@ files. `generate_preds()` now calls two stale signatures (`calc_clint` and
 **Tie handling (see Global Constraints).** The golden test below compares `output` directly, which is safe *only* because Task 2 Step 3 asserts the fixture subset excludes both tied chemicals. In addition, expose the prepared descriptor matrix through an internal helper (e.g. `prepare_papp_descriptors(descriptors)`) so the vote matrix can be asserted without the `trace()` workaround Task 1 needed, and add a test comparing
 
 ```r
-predict(papp_classmodopt, prepare_papp_descriptors(d), type = "vote", norm.votes = FALSE)
+predict(papp_classmodopt$finalModel, prepare_papp_descriptors(d), type = "vote", norm.votes = FALSE)
 ```
+
+> **Corrected during implementation.** This snippet originally read
+> `predict(papp_classmodopt, ...)`. `papp_classmodopt` is a caret `train`
+> object, so that dispatches to `caret::predict.train()`, which errors with
+> `type must be either "raw" or "prob"`. The `$finalModel` accessor reaches the
+> underlying `randomForest`. Confirmed to reproduce the Task 1 capture exactly.
 
 against `baseline/golden-papp-votes.rds` for the full April-2026 input. Never assert on `Pab.Class.Pred` for a tied chemical.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `httkqsprs/tests/testthat/test-calc-papp.R`:
 
@@ -1132,12 +1138,47 @@ test_that("a missing required column errors naming the column", {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `R -e "devtools::test('httkqsprs', filter = 'calc-papp')"`
 Expected: FAIL — `calc_papp()` still requires `datalabel`.
 
-- [ ] **Step 3: Rewrite the head of `calc_papp()`**
+**Result: `FAIL 8 | WARN 0 | SKIP 0 | PASS 0`** — red for the right reasons
+(`read.csv(NEWOPERA)`: `invalid 'description' argument`, and
+`could not find function "prepare_papp_descriptors"`).
+
+**Two tests were added beyond the six above.**
+
+*Test 7 — Review Focus 7 regression.* Asserts that the six descriptors the
+Global Constraints identify as constant-by-construction stay constant after
+`prepare_papp_descriptors()`:
+
+```r
+test_that("the six unavailable papp descriptors are constant after preparation", {
+  prepared <- prepare_papp_descriptors(load_fixture_descriptors())
+  for (nm in c("RT_pred", "MDEC_23", "WTPT_3", "MDEO_11", "nbRotBd", "WTPT_4")) {
+    expect_length(unique(prepared[[nm]]), 1L)
+  }
+})
+```
+
+This is the trip-wire for Task 8: if `get_descriptors()` ever starts sourcing
+those five from OPERA (where they do exist), this test fails loudly instead of
+silently changing every Papp prediction.
+
+*Test 8 — full-run vote parity*, which the Task 6 preamble asks for. It is
+guarded by `skip_if_not(all(file.exists(votes_path, opera_path, padel_path)))`
+so it is a no-op wherever the git-ignored `baseline/` artifacts and the 66 MB
+April-2026 CSVs are absent. It rebuilds the descriptor frame with production's
+own join (`by.x = "MoleculeID", by.y = "Name", all.x = TRUE`) and asserts both
+`dim()` and `unname()` equality against `baseline/golden-papp-votes.rds`.
+
+Placement was checked against Task 10 before writing it: Task 10 is a live-
+database parity check over 8 named chemicals and never exercises the full 4052-row
+forest, so it does **not** subsume this. The two are complementary, not redundant.
+Cost is ~11s per unfiltered `devtools::test()` run; use `filter=` while iterating.
+
+- [x] **Step 3: Rewrite the head of `calc_papp()`**
 
 In `httkqsprs/R/calc_papp.R`, replace the signature and the descriptor-acquisition block (through the `if (is.null(chems)) { ... } else { ... }` that assigns `papp_df`) with:
 
@@ -1165,7 +1206,36 @@ Everything from `# Calculate fraction_neutral from pKa if available` onward is u
 
 Update the roxygen block as in Tasks 4–5.
 
-- [ ] **Step 4: Fix the `MoleculeI` partial-matching typo**
+**Result: done, with the split the preamble required but Step 3 omitted.** The
+preamble mandates an internal `prepare_papp_descriptors()` helper, but the code
+block above kept everything in `calc_papp()`. The helper was therefore carved
+out so it owns the whole deterministic pipeline:
+
+```r
+#' @noRd
+prepare_papp_descriptors <- function(descriptors) {
+  papp_opt_desc  <- httkqsprs::papp_opt_desc
+  papp_train_msd <- httkqsprs::papp_train_msd
+
+  needs <- required_descriptors("papp")
+  papp_df <- subset_descriptors(descriptors, c(needs$opera, needs$padel))
+
+  # ionization -> fraction_neutral, restrict to papp_opt_desc,
+  # standardize, NA -> 0, Inf -> 100 SD   (all verbatim from the original)
+
+  papp_desc
+}
+```
+
+`calc_papp()` reduces to `papp_desc <- prepare_papp_descriptors(descriptors)`
+followed by the unchanged predict / AD / bin-lookup tail. It no longer needs
+`papp_train_msd`, so that binding moved into the helper.
+
+Also deleted the dead local `papp_mod_vars <- c(papp_opera_desc, papp_padel_desc,
+"fraction neutral")` — never read, and its last element had a space instead of an
+underscore, so it could never have matched a real column.
+
+- [x] **Step 4: Fix the `MoleculeI` partial-matching typo**
 
 In the `papp_pred <- data.frame(` call, change:
 
@@ -1179,18 +1249,72 @@ to:
     MoleculeID = papp_df$MoleculeID,
 ```
 
-- [ ] **Step 5: Run the tests**
+**Result: done, but strengthened to `descriptors[["MoleculeID"]]`.** `papp_df` is
+now local to `prepare_papp_descriptors()` and so is out of scope in
+`calc_papp()`. The ID is taken from the caller's frame instead, which is safe
+because the refactored path performs no merge — `subset_descriptors()` only
+selects columns, so row order is preserved one-for-one. `[[` is used rather than
+`$` so the fix is real: `$` would have silently partial-matched `MoleculeI`
+again, which is the exact bug this step exists to remove. The
+"carried through exactly, not by partial matching" test covers this.
+
+- [x] **Step 5: Run the tests**
 
 Run: `R -e "devtools::document('httkqsprs'); devtools::test('httkqsprs', filter = 'calc-papp')"`
 Expected: PASS, 6 tests.
 
-- [ ] **Step 6: Commit**
+**Result: PASS, 16 expectations across 8 tests (11.0s), 0 skipped.** Two tests
+beyond the plan's six were added — see Step 2's result note. Full suite:
+`FAIL 0 | WARN 0 | SKIP 0 | PASS 47` in 31.7s.
+
+Red phase was confirmed first: `FAIL 8 | PASS 0`, failing with
+`could not find function "prepare_papp_descriptors"` and inside
+`read.csv(NEWOPERA)` — the right reasons.
+
+**Deviation found while writing the vote test: `papp_classmodopt` is a caret
+`train` object, not a bare `randomForest`.** `stats::predict()` therefore
+dispatches to `caret::predict.train()`, which rejects `type = "vote"` with
+`type must be either "raw" or "prob"`. This is precisely why Task 1 needed the
+`trace()` workaround. Votes must be requested from the wrapped model:
+
+```r
+stats::predict(
+  httkqsprs::papp_classmodopt$finalModel,
+  prepare_papp_descriptors(descriptors),
+  type = "vote",
+  norm.votes = FALSE
+)
+```
+
+Verified this reproduces the Task 1 capture exactly: **0 mismatched cells out of
+12,156** (4052 x 3 vote counts), `identical()` on the unnamed matrices returns
+`TRUE`. So caret passes the 25-column frame to `predict.randomForest` untouched,
+and `prepare_papp_descriptors()` is a faithful extraction.
+
+`document()` rewrote only `man/calc_papp.Rd`. `NAMESPACE` was untouched,
+confirming `@noRd` kept the helper internal.
+
+- [x] **Step 6: Commit**
 
 ```bash
 uvx --from air-formatter air format .
 git add httkqsprs/R httkqsprs/man httkqsprs/tests
 git commit -m "refactor: calc_papp() accepts a descriptor frame; fix MoleculeID typo"
 ```
+
+**Result: `1af6c16`, 3 files changed, +200/-135.** Per the standing deviation,
+only the touched files were formatted (`httkqsprs/R/calc_papp.R`,
+`httkqsprs/tests/testthat/test-calc-papp.R`) rather than `air format .`; air
+reported no changes needed.
+
+**Open gap deliberately not closed here: `calc_papp()` has no zero-row guard.**
+Review Focus 1 was scoped to Task 4 only, so `calc_clint()` and `calc_fup()` are
+guarded but `calc_papp()` is not. On a zero-row frame, `lapply(seq_len(0), ...)`
+yields an empty list, the `if (length(ion_list) > 0)` branch is skipped,
+`fraction_neutral` is never created, and `papp_df[, papp_opt_desc]` fails with
+"undefined columns selected". Task 7 is the natural place to decide this, since
+it owns the OPERA-without-PaDEL empty-intersection case that can produce such a
+frame.
 
 ---
 
