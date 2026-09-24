@@ -18,3 +18,9 @@ scripts/*.html
 # package
 *.tar.gz
 
+# Local baseline artifacts captured during the DB-decoupling refactor.
+# The capture scripts are tracked; the .rds outputs they produce are not
+# (large, and locally reproducible by rerunning the scripts).
+baseline/*
+!baseline/capture-*.R
+
