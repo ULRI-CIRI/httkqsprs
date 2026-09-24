@@ -437,12 +437,15 @@ zero risk to production.
   regenerate the baseline from `main` and report the discrepancy if they do
   not.
 
-## Observation outside this scope
+## Naming convention
 
-`pipelines/tasks/qsur/run.R` calls `box::use(R / qsur[...])`, but the file in
-`pipelines-r` is `R/qsur_utils.R`, and `pipelines-r/scripts/run_qsur.R`
-correctly uses `R / qsur_utils[...]`. These disagree, so either the Python task
-runs against an older `pipelines-r` layout or that path is currently broken.
-Worth checking before relying on the QSUR task. This design avoids repeating the
-trap by having both `run_httkqspr.R` and the future task script reference
-`R/httkqspr_utils`.
+`pipelines-r/R/qsur_utils.R` is a copy of `R/qsur.R` from the `qsur_2017` repo,
+renamed deliberately: `qsur_utils` disambiguates the helper module from the
+`QSUR` package itself, and establishes a `<package_name>_utils.R` convention for
+the additional packages `pipelines-r` will wrap over time.
+
+`httkqspr_utils.R` follows that convention. Note that
+`pipelines/tasks/qsur/run.R` still calls `box::use(R / qsur[...])` against the
+pre-rename filename; the Python repo is updated to match at cutover, which is
+outside this scope. The future `pipelines/tasks/httkqspr/run.R` will reference
+`R / httkqspr_utils` directly.
