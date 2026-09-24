@@ -66,3 +66,32 @@ required_descriptors <- function(endpoint = c("clint", "fup", "papp")) {
     padel = setdiff(papp_opt_desc, c("fraction_neutral", papp_opera_desc))
   )
 }
+
+#' Subset a descriptor frame to one endpoint's columns
+#'
+#' Validates that every required descriptor is present, then returns
+#' `MoleculeID` plus exactly those columns. Subsetting before any renaming
+#' or standardization keeps a wide union frame behaving identically to a
+#' per-endpoint frame.
+#'
+#' @param descriptors A data frame keyed on `MoleculeID`.
+#' @param required Character vector of required descriptor column names.
+#' @return A data frame with `MoleculeID` first, then `required`.
+#' @noRd
+subset_descriptors <- function(descriptors, required) {
+  if (!is.data.frame(descriptors)) {
+    stop("`descriptors` must be a data frame.", call. = FALSE)
+  }
+  if (!"MoleculeID" %in% names(descriptors)) {
+    stop("`descriptors` must contain a `MoleculeID` column.", call. = FALSE)
+  }
+  absent <- setdiff(required, names(descriptors))
+  if (length(absent) > 0) {
+    stop(
+      "`descriptors` is missing required columns: ",
+      paste(absent, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  descriptors[, c("MoleculeID", required), drop = FALSE]
+}
