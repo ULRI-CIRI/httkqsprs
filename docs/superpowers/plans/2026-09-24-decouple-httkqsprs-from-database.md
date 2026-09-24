@@ -548,7 +548,7 @@ git commit -m "test: add testthat scaffolding and golden fixtures"
 - Consumes: package data `Descriptors`, `ClintClass3Mod`, `RF.fit`, `papp_opt_desc`
 - Produces: `required_descriptors(endpoint)` returning `list(opera = <character>, padel = <character>)`, where `endpoint` is one of `"clint"`, `"fup"`, `"papp"`. Tasks 4–7 and `pipelines-r` Task 8 all call this.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `httkqsprs/tests/testthat/test-descriptors.R`:
 
@@ -605,12 +605,12 @@ test_that("an unknown endpoint is rejected", {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `R -e "devtools::test('httkqsprs', filter = 'descriptors')"`
 Expected: FAIL — `could not find function "required_descriptors"`.
 
-- [ ] **Step 3: Implement `required_descriptors()`**
+- [x] **Step 3: Implement `required_descriptors()`**
 
 Create `httkqsprs/R/descriptors.R`:
 
@@ -685,7 +685,7 @@ required_descriptors <- function(endpoint = c("clint", "fup", "papp")) {
 }
 ```
 
-- [ ] **Step 4: Regenerate docs and run the tests**
+- [x] **Step 4: Regenerate docs and run the tests**
 
 Run:
 ```bash
@@ -694,7 +694,7 @@ R -e "devtools::test('httkqsprs', filter = 'descriptors')"
 ```
 Expected: PASS, 7 tests. `NAMESPACE` now contains `export(required_descriptors)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 uvx --from air-formatter air format .
