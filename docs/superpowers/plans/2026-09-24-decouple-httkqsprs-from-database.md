@@ -718,7 +718,7 @@ git commit -m "feat: add required_descriptors() descriptor manifest"
 - Consumes: `required_descriptors("clint")` from Task 3
 - Produces: `calc_clint(descriptors)` returning `list(output = <data.frame>, missing = <data.frame>)`. `output` carries `MoleculeID`, standardized descriptor columns, `ClintPredictBin`, `ClintPredictBin_MD`, `ClintPredictBin_SD`, and Roy AD columns `SImin`, `SImax`, `SImean`, `SIsd`, `SI90`, `Outlier`. Task 7 and `pipelines-r` Task 9 both call this.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `httkqsprs/tests/testthat/test-calc-clint.R`. `load_fixture_descriptors()` and `align_to()` come from `helper-descriptors.R` (Task 2).
 
@@ -782,12 +782,17 @@ test_that("a zero-row descriptor frame returns empty results, not an error", {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `R -e "devtools::test('httkqsprs', filter = 'calc-clint')"`
 Expected: FAIL — `calc_clint()` still requires `datalabel` and tries to read CSVs.
 
-- [ ] **Step 3: Rewrite the head of `calc_clint()`**
+**Result:** `[ FAIL 5 | WARN 0 | SKIP 0 | PASS 0 ]`. All five failed inside
+`utils::read.csv(NEWOPERA)` with `invalid 'description' argument` — the
+intended reason. The Review Focus 2 test failed on message mismatch rather
+than passing vacuously, so it is a genuine red.
+
+- [x] **Step 3: Rewrite the head of `calc_clint()`**
 
 In `httkqsprs/R/calc_clint.R`, replace the signature and the entire descriptor-acquisition block (from `calc_clint <- function(` through the closing brace of the `if (is.null(chems)) { ... } else { ... }` pair that assigns `chemlist`) with:
 
@@ -822,7 +827,7 @@ Update the roxygen block above the function: replace the `@param datalabel`, `@p
 #'   ignored.
 ```
 
-- [ ] **Step 4: Add the shared subsetting and validation helper**
+- [x] **Step 4: Add the shared subsetting and validation helper**
 
 Append to `httkqsprs/R/descriptors.R`:
 
@@ -857,9 +862,16 @@ subset_descriptors <- function(descriptors, required) {
 }
 ```
 
-- [ ] **Step 5: Guard the zero-row case**
+- [x] **Step 5: Guard the zero-row case**
 
-`randomForest::predict()` errors on a zero-row newdata. Immediately after the `chemlistsc_Clint_narm <- ...` assignment in `calc_clint()`, insert:
+`randomForest::predict()` errors on a zero-row newdata.
+
+**Correction (found during execution).** This step originally said to insert
+the guard "immediately after the `chemlistsc_Clint_narm <- ...` assignment".
+That is wrong: the guard returns `IncompleteClint`, which is assigned on the
+*following* line, so inserting there references an undefined variable. Insert
+the guard **after the `IncompleteClint <- ...` assignment** and before
+`set.seed(1255)`:
 
 ```r
   if (nrow(chemlistsc_Clint_narm) == 0) {
@@ -867,18 +879,31 @@ subset_descriptors <- function(descriptors, required) {
   }
 ```
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `R -e "devtools::document('httkqsprs'); devtools::test('httkqsprs', filter = 'calc-clint')"`
 Expected: PASS, 5 tests. If the golden comparison fails, the diff printed by `expect_equal` names the offending column — investigate before moving on. A numeric difference here means the refactor changed the math.
 
-- [ ] **Step 7: Commit**
+**Result:** `[ FAIL 0 | WARN 0 | SKIP 0 | PASS 7 ]` (5 `test_that` blocks, 7
+expectations). The golden comparison passed, so Clint predictions are
+unchanged. Full suite: `PASS 25` (7 calc-clint + 18 descriptors).
+`document()` rewrote only `man/calc_clint.Rd`; `NAMESPACE` was untouched
+because `calc_clint` was already exported.
+
+- [x] **Step 7: Commit**
 
 ```bash
 uvx --from air-formatter air format .
 git add httkqsprs/R httkqsprs/man httkqsprs/NAMESPACE httkqsprs/tests
 git commit -m "refactor: calc_clint() accepts a descriptor frame"
 ```
+
+**Result:** `92d0053`, 4 files changed, +116/−102. Formatted only the three
+touched files rather than the whole repo, per established practice.
+
+> **Expected interim breakage.** `generate_preds()` still calls
+> `calc_clint(datalabel, ...)` and is broken from this commit until Task 7.
+> No test covers it yet, so the suite stays green.
 
 ---
 
