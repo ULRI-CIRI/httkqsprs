@@ -272,7 +272,7 @@ Ruled out by inspection: package drift (`randomForest` 4.7-1.2, `caret` 7.0-1, `
 
 The captured `baseline/golden-*.rds` files are the authoritative baseline — they are what `main` produces today.
 
-- [ ] **Step 6b: Capture the deterministic Papp vote matrix**
+- [x] **Step 6b: Capture the deterministic Papp vote matrix**
 
 Because `Pab.Class.Pred` is unstable for tied chemicals, Papp parity is asserted on votes. Create `baseline/capture-papp-votes.R`:
 
@@ -312,7 +312,9 @@ print(votes[tied, , drop = FALSE])
 Run: `Rscript baseline/capture-papp-votes.R`
 Expected: `rows scored: 4052  tied rows: 2`, and the two printed vote rows match the Global Constraints table exactly. If the tie count or the vote counts differ, the environment has shifted underneath this plan — stop and report rather than re-baselining.
 
-- [ ] **Step 7: Commit the capture scripts**
+**Result (2026-09-24): as expected.** `rows scored: 4052  tied rows: 2`, votes `54/223/223` and `58/221/221`.
+
+- [x] **Step 7: Commit the capture scripts**
 
 ```bash
 git add .gitignore rproject.toml rv.lock \
