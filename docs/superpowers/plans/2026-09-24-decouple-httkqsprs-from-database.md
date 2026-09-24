@@ -517,6 +517,17 @@ align_to <- function(df, reference) {
 Run: `Rscript data-raw/make-test-fixtures.R`
 Expected: reports roughly 40–60 selected chemicals and a total fixture footprint under ~500 KB. If the footprint exceeds 1 MB, reduce the per-group `pick(n)` counts and rerun.
 
+**Result (2026-09-24): 33 chemicals, 537 KB.** Both fall outside the estimates above; both are correct and need no action.
+
+- The count is 33 rather than 40–60 because the selection groups overlap heavily, and because **Papp class 1 is empty across the entire 4052-chemical dataset** (distribution is `1: 0, 2: 270, 3: 3782`). `split()` therefore contributes nothing for that class. No fixture can cover Papp class 1 — that is a property of the data, not a selection bug.
+- The footprint is 537 KB rather than under 500 KB because `subset-padel.csv` alone is 471 KB; PaDEL carries ~1,400 columns. This is well under the 1 MB hard limit, so the stated remediation does not apply.
+
+Verified coverage: Clint bins 8 / 4 / 12, Clint AD outliers 6, Clint incompletes 9, Fup AD outliers 3, Fup incompletes 4, and 27 chemicals with `NA` `pKa_a_pred` to exercise the `fraction_neutral` branch. Neither tied chemical is present.
+
+The fixture contains no chemical that is in OPERA but absent from PaDEL (Review Focus 3). This needs no fixture change: Task 7's test synthesises one by dropping a PaDEL row when `setdiff()` comes back empty.
+
+Note the `expected-*.rds` fixtures are `list(output =, missing =)`, not bare data frames, because `generate_preds()` returns that shape. This is intentional — every test in Tasks 4–7 indexes `expected$output` / `expected$missing`.
+
 - [x] **Step 6: Commit the scaffolding and fixtures**
 
 ```bash
