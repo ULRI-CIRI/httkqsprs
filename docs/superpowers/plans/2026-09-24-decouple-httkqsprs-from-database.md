@@ -335,8 +335,8 @@ Note `baseline/*.rds` are git-ignored by design — they are large and locally r
 **Files:**
 - Create: `httkqsprs/tests/testthat.R`
 - Create: `data-raw/make-test-fixtures.R`
-- Create: `httkqsprs/tests/testthat/fixtures/opera-subset.csv`
-- Create: `httkqsprs/tests/testthat/fixtures/padel-subset.csv`
+- Create: `httkqsprs/tests/testthat/fixtures/subset-opera.csv`
+- Create: `httkqsprs/tests/testthat/fixtures/subset-padel.csv`
 - Create: `httkqsprs/tests/testthat/fixtures/expected-clint.rds`
 - Create: `httkqsprs/tests/testthat/fixtures/expected-fup.rds`
 - Create: `httkqsprs/tests/testthat/fixtures/expected-papp.rds`
@@ -348,7 +348,7 @@ Note `baseline/*.rds` are git-ignored by design — they are large and locally r
 - Consumes: `baseline/golden-*.rds` and `baseline/descriptor-names.rds` from Task 1
 - Produces: fixture files under `httkqsprs/tests/testthat/fixtures/`, loadable in tests via `testthat::test_path("fixtures", "<name>")`; `load_fixture_descriptors()` and `align_to()` helpers available to every test file. Tasks 4–7 use all of these.
 
-- [ ] **Step 1: Add testthat to DESCRIPTION**
+- [x] **Step 1: Add testthat to DESCRIPTION**
 
 In `httkqsprs/DESCRIPTION`, after the `Imports:` line, add:
 
@@ -357,7 +357,7 @@ Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 ```
 
-- [ ] **Step 2: Create the testthat entry point**
+- [x] **Step 2: Create the testthat entry point**
 
 Create `httkqsprs/tests/testthat.R`:
 
@@ -368,7 +368,7 @@ library(httkqsprs)
 test_check("httkqsprs")
 ```
 
-- [ ] **Step 3: Write the fixture generation script**
+- [x] **Step 3: Write the fixture generation script**
 
 Create `data-raw/make-test-fixtures.R`:
 
@@ -477,7 +477,7 @@ tied <- c("DTXSID4060109", "DTXSID8062575")
 stopifnot(!any(tied %in% selected))
 ```
 
-- [ ] **Step 4: Write the shared test helper**
+- [x] **Step 4: Write the shared test helper**
 
 Create `httkqsprs/tests/testthat/helper-descriptors.R`. `testthat` sources every `helper-*.R` file before each test file, so all four test files share this one definition rather than repeating it.
 
@@ -512,12 +512,12 @@ align_to <- function(df, reference) {
 }
 ```
 
-- [ ] **Step 5: Run the fixture generator**
+- [x] **Step 5: Run the fixture generator**
 
 Run: `Rscript data-raw/make-test-fixtures.R`
 Expected: reports roughly 40–60 selected chemicals and a total fixture footprint under ~500 KB. If the footprint exceeds 1 MB, reduce the per-group `pick(n)` counts and rerun.
 
-- [ ] **Step 6: Commit the scaffolding and fixtures**
+- [x] **Step 6: Commit the scaffolding and fixtures**
 
 ```bash
 git add httkqsprs/DESCRIPTION httkqsprs/tests data-raw/make-test-fixtures.R
