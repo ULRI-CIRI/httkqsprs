@@ -4,29 +4,12 @@
 \alias{calc_papp}
 \title{Calculate Caco-2 apparent permeability (Papp) predictions}
 \usage{
-calc_papp(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-)
+calc_papp(descriptors)
 }
 \arguments{
-\item{datalabel}{Character scalar label for this prediction run.}
-
-\item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
-\code{\link[=get_opera]{get_opera()}}.}
-
-\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
-Defaults to \code{\link{getwd}}.}
+\item{descriptors}{A data frame keyed on \code{MoleculeID} containing at least
+the columns named by \code{required_descriptors("papp")}. Extra columns are
+ignored.}
 }
 \value{
 A named list with two elements:
@@ -44,8 +27,7 @@ imputation rather than case exclusion.}
 }
 }
 \description{
-Retrieves only the descriptors required by the Papp model workflow,
-imputes missing descriptors with training-set means, calculates Roy et al.
+Imputes missing descriptors with training-set means, calculates Roy et al.
 applicability domain status, and predicts a Papp class with the selected
 random forest model.
 }
@@ -55,9 +37,9 @@ The function also maps predicted bins to summary quantitative ranges in
 \code{Pab.Quant.Pred.LowerCI}, \code{Pab.Quant.Pred.UpperCI}).
 
 Required descriptor names are taken from \code{opt.desc} and expected training-set
-means/SDs from \code{train_msd}. If a required descriptor is absent in retrieved
-inputs, it is created as \code{NA} and then imputed from \code{train_msd} (row 1 means),
-matching the original workflow behavior.
+means/SDs from \code{train_msd}. If a required descriptor is absent in the
+supplied frame, it is created as \code{NA} and then imputed from \code{train_msd}
+(row 1 means), matching the original workflow behavior.
 
 If \code{pKa_a_pred} and \code{pKa_b_pred} are present, \code{fraction_neutral} is
 recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}. If ionization inputs
