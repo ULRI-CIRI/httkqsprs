@@ -1652,7 +1652,7 @@ decision rather than expanded into silently.
 - Consumes: `pipelines-r/R/pg_utils.R` exports `pg_query()`, `pg_escape_vector()`, `pg_connection_from_env()`; `httkqsprs::required_descriptors()` from Task 3
 - Produces: `get_descriptors(con, chem_ids, opera_version = "2.9")` returning a wide data frame keyed on `MoleculeID`. Task 9 consumes it.
 
-- [ ] **Step 1: Create the `pipelines-r` branch**
+- [x] **Step 1: Create the `pipelines-r` branch**
 
 ```bash
 cd ../pipelines-r
@@ -1661,7 +1661,7 @@ git checkout -b feat/httkqspr-support
 git branch --show-current   # must print: feat/httkqspr-support
 ```
 
-- [ ] **Step 2: Add the dependencies**
+- [x] **Step 2: Add the dependencies**
 
 In `../pipelines-r/rproject.toml`, extend the `dependencies` array:
 
@@ -1680,12 +1680,12 @@ dependencies = [
 
 The `branch` pin flips to `main` only when the human partner merges; the plan leaves it on the feature branch.
 
-- [ ] **Step 3: Sync and confirm the private dependency resolves**
+- [x] **Step 3: Sync and confirm the private dependency resolves**
 
 Run: `rv sync`
 Expected: `httkqsprs` installs from the subdirectory. If it fails with an authentication error, stop and report — this is the deployment risk the spec flags, and it must be resolved with the human partner before continuing.
 
-- [ ] **Step 4: Copy the two retrieval functions into `pipelines-r`**
+- [x] **Step 4: Copy the two retrieval functions into `pipelines-r`**
 
 Do this as a mechanical file copy followed by a short list of edits, so the SQL and name-mangling logic cannot drift.
 
@@ -1786,7 +1786,7 @@ with:
 
 **Edit 6 — roxygen tags.** Replace each function's `#' @export get_opera` / `#' @export get_padel` tag with `#' @noRd`. These are private helpers in `pipelines-r`; only `get_descriptors()` and `predict()` are exported.
 
-- [ ] **Step 5: Append `get_descriptors()`**
+- [x] **Step 5: Append `get_descriptors()`**
 
 Add to the end of `R/httkqspr_utils.R`:
 
@@ -1825,7 +1825,7 @@ get_descriptors <- function(con, chem_ids, opera_version = "2.9") {
 }
 ```
 
-- [ ] **Step 6: Verify against the database**
+- [x] **Step 6: Verify against the database**
 
 Create and run `../pipelines-r/scripts/check_get_descriptors.R`:
 
@@ -1869,7 +1869,7 @@ cat("OK\n")
 Run: `Rscript scripts/check_get_descriptors.R` from `../pipelines-r`
 Expected: `OK`, zero duplicate ids, zero missing columns. This is Review Focus 5.
 
-- [ ] **Step 7: Commit in `pipelines-r`**
+- [x] **Step 7: Commit in `pipelines-r`**
 
 ```bash
 cd ../pipelines-r
@@ -1877,6 +1877,78 @@ uvx --from air-formatter air format .
 git add R/httkqspr_utils.R scripts/check_get_descriptors.R rproject.toml rv.lock
 git commit -m "feat: add get_descriptors() for httkqsprs"
 ```
+
+**Result: complete.** Commits in `pipelines-r` on `feat/httkqspr-support`:
+`2b98eb3` (pg_query fix) and `96ba756` (get_descriptors). Working tree clean,
+`main` untouched.
+
+Step 3 succeeded: `httkqsprs 0.0.5 source https://github.com/ULRI-CIRI/dawson2021-httkqspr`
+installed from the subdirectory in 15.7s (41 packages, 77.6s total). The
+deployment risk this step flags is **closed** — but only after the human partner
+obtained write access and pushed `refactor/decouple-db-access` to origin. The
+branch had never been pushed, so the `branch` pin could not resolve until then.
+
+Step 4 fidelity was verified mechanically, not by eye: the concatenated originals
+were diffed byte-for-byte against `R/httkqspr_utils.R`. The diff contains
+**exactly** the six specified edits plus the appended `get_descriptors()`. No
+`gsub()` line, no `Opera.SQL.suffix` assignment, no `var.names`, no `col_defs`,
+no SQL and no box-drawing comment differs.
+
+Step 6 passed: exit 0, `rows: 8`, `duplicate ids: 0`, `missing columns:` (none),
+`OK`. Review Focus 5 is satisfied.
+
+**Blocker found and fixed — pre-existing `pg_query()` bug.** Step 6 first failed
+with `relation "descriptor_lookup" does not exist`. Root cause, confirmed
+empirically:
+
+```
+before: "$user", public
+after : """$user"", public"      <- one bogus schema name
+```
+
+`pg_query()` read `SHOW search_path` and restored it through
+`DBI::dbQuoteIdentifier()`, which quotes the whole multi-entry list as a *single*
+identifier. Every `pg_query(schema = ...)` call therefore corrupted the
+connection permanently. This was latent in `httkqsprs` because `get_opera()` and
+`get_padel()` each opened their own connection; `get_descriptors()` shares one, so
+`get_opera()`'s restore broke `get_padel()`'s `valid.descs` query — the only query
+that relies on the default search path. Fixed in `R/pg_utils.R` by replaying the
+server-supplied clause verbatim. `R/pg_utils.R` was **not** in this task's file
+list; the deviation was approved by the human partner and committed separately.
+
+**Review Focus 7 — the database DOES supply the six constant descriptors.** The
+check script reports all six as fully populated for all 8 chemicals:
+
+```
+MDEC_23: 8/8 non-NA    nbRotBd: 8/8 non-NA
+WTPT_3:  8/8 non-NA    WTPT_4:  8/8 non-NA
+MDEO_11: 8/8 non-NA    RT_pred: 8/8 non-NA
+```
+
+The CSV path mean-imputes all six to a standardized constant `0` because they are
+absent from the PaDEL export. The database path returns real values. **Papp
+predictions from the database therefore will not equal Papp predictions from the
+CSVs** — 6 of the model's 25 inputs differ. This is a pre-existing CSV-vs-DB
+divergence, not a regression introduced here, and it does not threaten Task 10,
+which compares new-DB against old-DB. It is recorded so it is not mistaken for a
+refactor bug later.
+
+**Two corrections to this task as written:**
+
+1. `git add ... rv.lock` cannot work — `rv.lock` is listed in `pipelines-r/.gitignore`
+   (line 2) and is untracked. It was omitted from the commit.
+2. `uvx --from air-formatter air format .` fails in `pipelines-r`, independently of
+   this work: the tracked `air.toml` contains `line_width = 100`, which current air
+   rejects (`unknown field 'line_width'`; it expects `line-width` under `[format]`).
+   Formatting was skipped rather than silently rewriting the repo's shared config.
+   The new files follow the surrounding style. **This is left unfixed for the human
+   partner to decide on, since it affects the whole repository.**
+
+Note for reruns: `scripts/check_get_descriptors.R` must be run as
+`Rscript -e "source('scripts/check_get_descriptors.R')"` from the repo root.
+Running `Rscript scripts/check_get_descriptors.R` directly fails, because `box`
+resolves `R/pg_utils` relative to the script's own directory. This matches how
+`scripts/run_qsur.R` is structured.
 
 ---
 
