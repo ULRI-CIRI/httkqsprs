@@ -26,6 +26,9 @@
 
   Therefore **Papp parity is asserted on the vote matrix, never on the predicted class.** Votes are fully deterministic; only the argmax tie-break consumes randomness. Vote comparison is also strictly *more* sensitive than class comparison — it catches a single-vote shift that argmax would hide. Do not add `set.seed()` to package code to paper over this: that is a behaviour change and is out of scope for this refactor.
 - Descriptor retrieval names: OPERA names always carry a `_pred` suffix; PaDEL names never do.
+- **Six Papp descriptors are constant by construction (verified in Task 3).** Because `calc_papp()` routes descriptors by that same `_pred$` suffix, `MDEC_23`, `WTPT_3`, `MDEO_11`, `nbRotBd` and `WTPT_4` are looked for **only** in the PaDEL source. They are absent from the PaDEL CSV (all 1445 columns of it) but *present* in the OPERA CSV; `RT_pred` is absent from both. All six therefore fall through to mean imputation and reach the model as a standardized constant `0` for **every** chemical — 6 of the model's 25 inputs. Confirmed by tracing `predict.randomForest` on the full April-2026 run: each of the six has exactly 1 unique value across 4052 rows, versus ~1100–1200 for genuine descriptors.
+
+  This is pre-existing `main` behaviour, **not** a refactor artifact, so **reproduce it exactly**. Supplying the real OPERA values would change every Papp prediction and break parity. Whether to fix the routing is a separate, post-refactor decision.
 - `calc_fup()`'s `Opera_` / `padel_` column prefixing happens **after** retrieval, inside `calc_fup()`.
 - `papp` requests `pKa_a_pred` and `pKa_b_pred` purely so `httk::calc_ionization()` can derive `fraction_neutral`; they are never model inputs.
 - The PaDEL CSV keys on column `Name`; everything else keys on `MoleculeID`.
@@ -44,6 +47,7 @@ These are failure modes the spec implies but that the happy-path golden tests wo
 4. **`NA` pKa values** — `httk::calc_ionization()` receives `NA` donors/acceptors, so `fraction_neutral` becomes `NA` and must flow into the mean-imputation path rather than aborting. (Task 6)
 5. **Duplicate `MoleculeID` rows from the database** — a chemical with two OPERA prediction rows silently fan-outs the merge, inflating row counts. Expect one row per `MoleculeID`. (Task 8)
 6. **Tied Papp votes** — the two tie chemicals named in Global Constraints must keep identical *vote counts* across the refactor even though their predicted class is unstable. A class-based assertion on those rows is flaky and must not be written. (Tasks 1, 6, 10)
+7. **Silently mean-imputed Papp descriptors** — `get_descriptors()` must not source `MDEC_23`, `WTPT_3`, `MDEO_11`, `nbRotBd`, `WTPT_4` or `RT_pred` from OPERA for the Papp endpoint, however tempting: they must arrive `NA` so the imputation path reproduces the baseline votes. Assert that all six are constant in the prepared matrix. (Tasks 6, 8)
 
 ---
 
