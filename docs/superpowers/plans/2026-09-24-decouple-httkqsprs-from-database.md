@@ -917,7 +917,7 @@ touched files rather than the whole repo, per established practice.
 - Consumes: `required_descriptors("fup")`, `subset_descriptors()` from Tasks 3–4
 - Produces: `calc_fup(descriptors)` returning `list(output = <data.frame>, missing = <data.frame>)`. `output` carries `MoleculeID`, `Opera_`/`padel_`-prefixed standardized columns, `Fup.RF.pred`, and the Roy AD columns.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `httkqsprs/tests/testthat/test-calc-fup.R`:
 
@@ -973,12 +973,15 @@ test_that("a missing required column errors naming the column", {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `R -e "devtools::test('httkqsprs', filter = 'calc-fup')"`
 Expected: FAIL — `calc_fup()` still requires `datalabel`.
 
-- [ ] **Step 3: Rewrite the head of `calc_fup()`**
+**Result:** `[ FAIL 5 | WARN 0 | SKIP 0 | PASS 0 ]`, all inside
+`utils::read.csv(NEWOPERA)` — the intended reason.
+
+- [x] **Step 3: Rewrite the head of `calc_fup()`**
 
 In `httkqsprs/R/calc_fup.R`, replace the signature and the descriptor-acquisition block (through the `if (is.null(chems)) { ... } else { ... }` that assigns `fupchemlist`) with:
 
@@ -1003,11 +1006,18 @@ calc_fup <- function(descriptors) {
 
 Everything from `Padeldesc <- which(` onward is unchanged.
 
-Update the roxygen block the same way as Task 4: replace the five removed `@param` tags with the single `@param descriptors` tag and drop the `[get_padel()]`/`[get_opera()]` references.
+Update the roxygen block the same way as Task 4: replace the removed `@param` tags with the single `@param descriptors` tag and drop the `[get_padel()]`/`[get_opera()]` references.
 
-- [ ] **Step 4: Guard the zero-row case**
+> **Note.** There are **six** `@param` tags to remove here, not five. The
+> roxygen block also documents `conn_str`, which the function signature never
+> actually had — a pre-existing documentation error. Remove it too.
 
-Immediately after the `chemlistsc_fup_narm <- ...` assignment, insert:
+- [x] **Step 4: Guard the zero-row case**
+
+**Correction (found during execution).** Same defect as Task 4 Step 5: the
+guard returns `Incompletescfup`, which is assigned on the line *after*
+`chemlistsc_fup_narm`. Insert the guard **after the `Incompletescfup <- ...`
+assignment**, before `set.seed(1255)`:
 
 ```r
   if (nrow(chemlistsc_fup_narm) == 0) {
@@ -1015,18 +1025,31 @@ Immediately after the `chemlistsc_fup_narm <- ...` assignment, insert:
   }
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `R -e "devtools::document('httkqsprs'); devtools::test('httkqsprs', filter = 'calc-fup')"`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 6: Commit**
+**Result:** `[ FAIL 0 | WARN 0 | SKIP 0 | PASS 6 ]` (5 blocks, 6 expectations).
+Golden comparison passed, so Fup predictions are unchanged. Full suite:
+`PASS 31`. `document()` rewrote only `man/calc_fup.Rd`; `NAMESPACE` untouched.
+
+> **Coverage gap.** Unlike Task 4, this task adds a zero-row guard but
+> specifies no test for it. Verified manually instead: a zero-row frame
+> returns `output` 0 rows, `missing` 0 rows, as a 2-element list. If a
+> regression test is wanted later, mirror the Task 4 zero-row block.
+
+- [x] **Step 6: Commit**
 
 ```bash
 uvx --from air-formatter air format .
 git add httkqsprs/R httkqsprs/man httkqsprs/tests
 git commit -m "refactor: calc_fup() accepts a descriptor frame"
 ```
+
+**Result:** `1dd305a`, 3 files changed, +79/−115. Formatted only the touched
+files. `generate_preds()` now calls two stale signatures (`calc_clint` and
+`calc_fup`); both are repaired in Task 7.
 
 ---
 
