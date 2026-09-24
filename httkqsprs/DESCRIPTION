@@ -36,6 +36,8 @@ Description: The Dawson et al. (2021) <doi:10.1021/acs.est.0c06117>
 LazyData: true
 Encoding: UTF-8
 Imports: randomForest, caret, RPostgres, httk
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
 URL: https://chemicalinsights.ul.org/
 Roxygen: list(markdown = TRUE)
 Maintainer: John Wambaugh <John.Wambaugh@UL.org>
