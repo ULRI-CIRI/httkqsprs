@@ -1962,7 +1962,7 @@ resolves `R/pg_utils` relative to the script's own directory. This matches how
 - Consumes: `get_descriptors()` from Task 8; `httkqsprs::calc_clint()`/`calc_fup()`/`calc_papp()` from Tasks 4–6
 - Produces: `predict(descriptors)` returning `list(clint =, fup =, papp =)` with the DB-facing column names; `run_httkqspr.R` defining `clint_csv_str`, `fup_csv_str`, `papp_csv_str` in the global environment
 
-- [ ] **Step 1: Append `predict()` to `httkqspr_utils.R`**
+- [x] **Step 1: Append `predict()` to `httkqspr_utils.R`**
 
 ```r
 #' Predict Clint, Fup, and Papp from a descriptor frame
@@ -2021,7 +2021,12 @@ predict <- function(descriptors) {
 
 These `dplyr::select()` blocks are transcribed from `pipelines/src/pipelines/tasks/httkqspr/run.R`. Do not modify that file.
 
-- [ ] **Step 2: Write the run script**
+**Result (2026-09-25): implemented verbatim, plus one approved addition.** The three
+`dplyr::select()` / `dplyr::mutate()` blocks were transcribed unchanged and verified
+character-for-character against the read-only reference `run.R`. `predict()` additionally
+carries a `.GlobalEnv` shim — see the Task 9 Result block at the end of this task.
+
+- [x] **Step 2: Write the run script**
 
 Create `../pipelines-r/scripts/run_httkqspr.R`, mirroring `scripts/run_qsur.R`:
 
@@ -2071,7 +2076,7 @@ papp_csv_str <- paste(
 
 The three string names match what `pipelines/src/pipelines/tasks/httkqspr/run.py` already reads via `r.csv_to_df(name = ...)`.
 
-- [ ] **Step 3: Smoke-test the run script**
+- [x] **Step 3: Smoke-test the run script**
 
 Run from `../pipelines-r`:
 
@@ -2081,7 +2086,13 @@ Rscript -e 'chem_ids <- c("CICHEM010017986","CICHEM010028777","CICHEM010057529",
 
 Expected: three CSV headers matching the spec's column contract exactly — `cichem,bin,bin_md,bin_sd,si_min,si_max,si_mean,si_sd,si_90,is_outlier`, then `cichem,prediction,si_min,si_max,si_mean,si_sd,si_90,is_outlier`, then `cichem,prediction,class_median,class_lower_ci,class_upper_ci,is_outlier`. `is_outlier` values must read `TRUE`/`FALSE`, not `0`/`1`.
 
-- [ ] **Step 4: Commit**
+**Result (2026-09-25): all three headers match exactly**, `is_outlier` is `logical` in all
+three frames, and 8 chem_ids produce 8 rows per endpoint (no merge fan-out). Reproduced
+independently by the controller at review time, byte-for-byte identical to the implementer's
+run. Note that `box` resolves module paths relative to the *calling script's* directory, so a
+smoke-test script outside `pipelines-r` needs `options(box.path = )` pointed at the repo root.
+
+- [x] **Step 4: Commit**
 
 ```bash
 cd ../pipelines-r
@@ -2089,6 +2100,50 @@ uvx --from air-formatter air format .
 git add R/httkqspr_utils.R scripts/run_httkqspr.R
 git commit -m "feat: add predict() and run_httkqspr.R"
 ```
+
+**Result (2026-09-25): committed as `e149cbe` on `feat/httkqspr-support`.** `air format` was
+skipped for the same reason as Task 8 — the tracked `air.toml` uses the rejected `line_width`
+key and fails to parse. `air.toml` is reserved for the human partner, so formatting was matched
+by hand; the controller confirmed no line added by this task exceeds 80 columns. `rv.lock` is
+git-ignored in `pipelines-r` and was not added.
+
+**Deviation (accepted): a `.GlobalEnv` predict-shim inside `predict()`.**
+
+`Papp-optimal_model.RData` holds a `caret::train` object whose `modelInfo$predict` closure is
+enclosed by `.GlobalEnv` — an artifact of a custom model spec authored in a plain script and
+`save()`d, which R rebinds to whatever `.GlobalEnv` exists at `load()` time. That closure calls
+`predict(modelFit, newdata)` *unqualified*. Once `run_httkqspr.R` runs its mandated top-level
+`box::use(R / httkqspr_utils[get_descriptors, predict])`, the search path becomes:
+
+```
+.GlobalEnv | mod:R/httkqspr_utils | mod:R/pg_utils | package:stats
+```
+
+so the lookup reaches this module's one-argument `predict(descriptors)` before `stats::predict`
+and dies with `unused argument (newdata)`. `calc_clint()` and `calc_fup()` are unaffected —
+their models carry no `.GlobalEnv`-enclosed closure. `qsur_utils.R` exports a `predict` member
+too and never hit this, for the same reason.
+
+`predict()` therefore binds `stats::predict` into `.GlobalEnv` for the duration of the three
+`calc_*()` calls and restores the prior binding (or removes it) via `on.exit`.
+
+Controller verification at review time, from a script using the exact mandated top-level
+`box::use()`:
+
+| call | result |
+|---|---|
+| `httkqsprs::calc_papp(descriptors)` direct, bypassing the shim | `Error: unused argument (newdata)` |
+| `predict(descriptors)` | returns a 3-element list |
+| `exists("predict", globalenv(), inherits = FALSE)` after the call | `FALSE` — no leak |
+
+Renaming `predict` was off the table: the name is fixed by the spec's public API and by the
+`qsur_utils.R` convention. Fixing it at the `run_httkqspr.R` call site instead would leave
+`predict()` a landmine for every other top-level `box::use()` consumer.
+
+**Carry into Tasks 10 and 12:** the shim only protects calls routed *through* `predict()`. Any
+script that calls `httkqsprs::calc_papp()` **directly** after a top-level `box::use()` that
+attaches a `predict` member hits the same shadowing. Go through `predict()`, or use the module-
+object form `box::use(R / httkqspr_utils)` — which attaches nothing to the search path.
 
 ---
 
