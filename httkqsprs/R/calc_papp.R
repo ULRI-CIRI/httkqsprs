@@ -15,10 +15,11 @@
 #' @return A named list with two elements:
 #' \describe{
 #'   \item{output}{Data frame with one row per chemical and columns:
-#'     `DTXSID` (identifier copied from the first input column),
+#'     `MoleculeID` (identifier carried over from the input frame),
 #'     `Pab.Class.Pred` (predicted Papp class/bin),
-#'     `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain,
-#'     `0` = out-of-domain), and
+#'     `Pab.Pred.AD` (applicability-domain flag; `1` = OUTSIDE the
+#'     applicability domain, `0` = inside, matching the `Outlier` convention
+#'     in [calc_roy_ad()]), and
 #'     `Pab.Quant.Pred.Median` (median log Papp for the predicted bin),
 #'     `Pab.Quant.Pred.LowerCI` (lower percentile bound), and
 #'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from `qspr.summary`.}
@@ -61,6 +62,19 @@ calc_papp <- function(descriptors) {
   papp_qspr_summary <- httkqsprs::papp_qspr_summary
 
   papp_desc <- prepare_papp_descriptors(descriptors)
+
+  # `papp_classmodopt` is a legacy caret::train object. Its internal
+  # `modelInfo$predict` closure was saved with `.GlobalEnv` as its enclosing
+  # environment and calls `predict()` unqualified, so R resolves that call
+  # starting in the CALLER's global environment. Any object named `predict`
+  # there -- a user variable, or another package's function assigned globally
+  # -- would be picked up instead of `stats::predict` and break the
+  # prediction. Re-parent the closure onto an environment that supplies the
+  # correct `predict` before its lookup can escape to the user's workspace.
+  # This mutates our local copy only; the packaged data object is untouched.
+  predict_env <- new.env(parent = globalenv())
+  predict_env$predict <- stats::predict
+  environment(papp_classmodopt$modelInfo$predict) <- predict_env
 
   pred <- stats::predict(papp_classmodopt, papp_desc)
 
@@ -160,7 +174,12 @@ prepare_papp_descriptors <- function(descriptors) {
   inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
   for (col in inf_cols) {
     inf_rows <- which(is.infinite(papp_desc[[col]]))
-    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
+    # Index `papp_train_msd` by NAME, as the standardization loop above does.
+    # `col` is a position in `papp_desc`, and the two frames do not share a
+    # column order, so indexing by position could read a different
+    # descriptor's SD.
+    this_col <- names(papp_desc)[col]
+    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, this_col]) * 100
   }
 
   papp_desc

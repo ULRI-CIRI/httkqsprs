@@ -32,7 +32,6 @@
 #' descriptor frame to [calc_clint()], [calc_fup()], and [calc_papp()].
 #'
 #' @param Datalabel A character string used to label input and output files.
-#' @param output.path Optional output directory path. Defaults to `tempdir()`.
 #' @param Operaversion A character string specifying the OPERA version.
 #' @param operapostfix Postfix of the OPERA descriptor file.
 #' @param padelpostfix Postfix of the PaDEL descriptor file.
@@ -50,9 +49,9 @@
 #'   \item{Fup}{Named list returned by [calc_fup()], with elements
 #'     `$output` (complete-case predictions) and `$missing` (excluded
 #'     incomplete cases).}
-#'   \item{Papp}{Named list returned by [calc_papp()] when available
-#'     (otherwise `NULL`), with elements `$output` (predictions) and
-#'     `$missing` (`NULL`, as Papp uses imputation instead of exclusion).}
+#'   \item{Papp}{Named list returned by [calc_papp()], with elements
+#'     `$output` (predictions) and `$missing` (always `NULL`, as Papp uses
+#'     imputation instead of exclusion).}
 #' }
 #'
 #' @references
@@ -75,7 +74,6 @@
 #' @export generate_preds
 generate_preds <- function(
   Datalabel,
-  output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
@@ -83,10 +81,6 @@ generate_preds <- function(
   write.files = TRUE,
   output.folder = tempdir()
 ) {
-  if (is.null(output.path)) {
-    output.path <- tempdir()
-  }
-
   descriptors <- read_descriptor_csvs(
     datalabel = Datalabel,
     input.folder = input.folder,
@@ -147,6 +141,11 @@ generate_preds <- function(
     )
 
     # write papp outputs
+    #
+    # There is deliberately no "Incomplete_papp" file: `calc_papp()` mean-
+    # imputes missing descriptors rather than excluding cases, so `$missing`
+    # is always NULL and `write.csv(NULL)` produced a file whose entire
+    # contents were `""`.
     write.csv(
       papp$output,
       file = file.path(
@@ -158,13 +157,6 @@ generate_preds <- function(
           Operaversion,
           ".csv"
         )
-      )
-    )
-    write.csv(
-      papp$missing,
-      file = file.path(
-        output.folder,
-        paste0("Incomplete_papp_predictions_", Datalabel, ".csv")
       )
     )
   }

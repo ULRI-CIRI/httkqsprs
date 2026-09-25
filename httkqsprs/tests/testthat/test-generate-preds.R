@@ -12,16 +12,11 @@ test_that("generate_preds reproduces the golden output from CSVs", {
       "fixtures",
       paste0("expected-", tolower(endpoint), ".rds")
     ))
-    expect_equal(
-      align_to(got[[endpoint]]$output, expected$output),
-      align_to(expected$output, expected$output),
-      ignore_attr = TRUE,
-      info = endpoint
-    )
+    expect_golden_output(got[[endpoint]]$output, expected$output, endpoint)
   }
 })
 
-test_that("write.files = TRUE writes six CSVs into output.folder", {
+test_that("write.files = TRUE writes five CSVs into output.folder", {
   out_dir <- withr::local_tempdir()
 
   generate_preds(
@@ -34,9 +29,11 @@ test_that("write.files = TRUE writes six CSVs into output.folder", {
   )
 
   written <- list.files(out_dir, pattern = "\\.csv$")
-  expect_length(written, 6)
+  expect_length(written, 5)
   expect_true(any(grepl("^Novel_clint_predictions_with_AD_subset", written)))
   expect_true(any(grepl("^Incomplete_Clint_predictions_subset", written)))
+  # Papp imputes rather than excluding, so it has no incomplete-cases file.
+  expect_false(any(grepl("^Incomplete_papp_predictions", written)))
 })
 
 # Review Focus 3: a chemical in OPERA but absent from PaDEL

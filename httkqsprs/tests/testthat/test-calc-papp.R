@@ -2,16 +2,28 @@ test_that("papp predictions match the pre-refactor golden output", {
   expected <- readRDS(test_path("fixtures", "expected-papp.rds"))
   got <- calc_papp(load_fixture_descriptors())
 
-  expect_equal(
-    align_to(got$output, expected$output),
-    align_to(expected$output, expected$output),
-    ignore_attr = TRUE
-  )
+  expect_golden_output(got$output, expected$output, "Papp")
 })
 
 test_that("papp returns NULL for missing, since it imputes", {
   got <- calc_papp(load_fixture_descriptors())
   expect_null(got$missing)
+})
+
+# The packaged caret model's internal `modelInfo$predict` closure is enclosed
+# in .GlobalEnv and calls `predict()` unqualified, so before the fix in
+# calc_papp() any object named `predict` in the caller's workspace hijacked
+# that call and the prediction died. `predict` is a plausible user variable
+# name, so this has to keep working.
+test_that("a user object named 'predict' does not break calc_papp", {
+  descriptors <- load_fixture_descriptors()
+  clean <- calc_papp(descriptors)
+
+  assign("predict", function(...) stop("hijacked"), envir = globalenv())
+  withr::defer(rm("predict", envir = globalenv()))
+
+  hijacked <- calc_papp(descriptors)
+  expect_equal(hijacked$output, clean$output)
 })
 
 test_that("MoleculeID is carried through exactly, not by partial matching", {

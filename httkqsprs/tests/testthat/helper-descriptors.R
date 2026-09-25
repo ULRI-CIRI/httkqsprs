@@ -30,3 +30,26 @@ load_fixture_descriptors <- function() {
 align_to <- function(df, reference) {
   df[order(as.character(df$MoleculeID)), names(reference), drop = FALSE]
 }
+
+# Compares an endpoint's `$output` against its golden fixture.
+#
+# Guards the two blind spots of the comparison itself. `align_to()` selects
+# `names(reference)`, which errors on a MISSING column but silently discards
+# EXTRA ones, so a spurious new column would pass unnoticed; and
+# `ignore_attr = TRUE` strips factor levels, so a permuted bin labeling would
+# compare equal as bare integer codes. Assert both explicitly, then compare
+# values with order ignored as before.
+expect_golden_output <- function(got, expected, label = NULL) {
+  expect_setequal(names(got), names(expected))
+
+  for (nm in names(expected)[vapply(expected, is.factor, logical(1))]) {
+    expect_identical(levels(got[[nm]]), levels(expected[[nm]]))
+  }
+
+  expect_equal(
+    align_to(got, expected),
+    align_to(expected, expected),
+    ignore_attr = TRUE,
+    info = label
+  )
+}

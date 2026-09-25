@@ -6,7 +6,6 @@
 \usage{
 generate_preds(
   Datalabel,
-  output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
@@ -17,8 +16,6 @@ generate_preds(
 }
 \arguments{
 \item{Datalabel}{A character string used to label input and output files.}
-
-\item{output.path}{Optional output directory path. Defaults to \code{tempdir()}.}
 
 \item{Operaversion}{A character string specifying the OPERA version.}
 
@@ -43,9 +40,9 @@ incomplete cases).}
 \item{Fup}{Named list returned by \code{\link[=calc_fup]{calc_fup()}}, with elements
 \verb{$output} (complete-case predictions) and \verb{$missing} (excluded
 incomplete cases).}
-\item{Papp}{Named list returned by \code{\link[=calc_papp]{calc_papp()}} when available
-(otherwise \code{NULL}), with elements \verb{$output} (predictions) and
-\verb{$missing} (\code{NULL}, as Papp uses imputation instead of exclusion).}
+\item{Papp}{Named list returned by \code{\link[=calc_papp]{calc_papp()}}, with elements
+\verb{$output} (predictions) and \verb{$missing} (always \code{NULL}, as Papp uses
+imputation instead of exclusion).}
 }
 }
 \description{
