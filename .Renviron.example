@@ -1,1 +1,0 @@
-PIPELINES_CONN_STR='postgres://username:password@host:port/db'
