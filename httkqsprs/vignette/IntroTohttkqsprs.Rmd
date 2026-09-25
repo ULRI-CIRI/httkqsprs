@@ -90,18 +90,37 @@ packageVersion("httkqsprs")
 
 ## Examples
 
-* Retrieve Padel and OPERA descriptors from internal Chemical Insights database
-```{r make predictions, eval = TRUE}
-# create list of chemical ids
-chem.ids <- c("CICHEM010017986","CICHEM000200048","CICHEM000200014")
-#debug(generate_preds)
-# generate Clint and Fup values for the chemicals ()
-out <- generate_preds("June2026",chems=chem.ids)
-# Clint Values:
-out$Clint[,c("MoleculeID","ClintPredictBin_MD")]
-# Fup Values:
-out$Fup[,c("MoleculeID","Fup.RF.pred")]
+* Predict Clint, Fup, and Papp from OPERA and PaDEL descriptor files
+
+`generate_preds()` reads a pair of descriptor files that you supply and returns
+predictions for all three endpoints. Both files must sit in `input.folder` and
+share a common label: for the label `"NewHTTK_April_2026"` the OPERA file is
+`NewHTTK_April_2026-smi_OPERA2.9Pred.csv` and the PaDEL file is
+`NewHTTK_April_2026_QSAR-ready_smi_PadelDesc.csv`. Descriptors may come from
+running OPERA and PaDEL yourself or from a database of pre-generated
+descriptors, as long as they are exported in that file layout.
+
+The chunk below is not evaluated when the vignette is built because the
+descriptor files are supplied by you; point `input.folder` at the directory
+holding them and run it yourself.
+```{r make_predictions, eval = FALSE}
+out <- generate_preds(
+  "NewHTTK_April_2026",
+  input.folder = "path/to/descriptor/files",
+  output.folder = tempdir()
+)
+# Clint values:
+head(out$Clint$output[, c("MoleculeID", "ClintPredictBin_MD", "Outlier")])
+# Fup values:
+head(out$Fup$output[, c("MoleculeID", "Fup.RF.pred", "Outlier")])
+# Papp values:
+head(out$Papp$output[, c("MoleculeID", "Pab.Class.Pred", "Pab.Pred.AD")])
 ```
+
+Chemicals missing a descriptor that Clint or Fup requires are excluded from
+`$output` and returned in `$missing` instead, for example `out$Clint$missing`.
+Papp imputes missing descriptors rather than excluding chemicals, so
+`out$Papp$missing` is `NULL`.
 
 ## Help
 
