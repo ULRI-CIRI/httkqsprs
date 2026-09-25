@@ -2161,7 +2161,13 @@ This is the gate for Task 11. Do not delete the package's database code until th
 
 **Tie guard (see Global Constraints).** This compares `Pab.Class.Pred` for 8 chemicals. Before trusting a mismatch, check whether the offending chemical has a tied vote — a tied row flipping is expected noise, not a parity failure. If any of the 8 turns out to be tied, swap it for an untied chemical rather than weakening the assertion.
 
-- [ ] **Step 1: Capture the `main` database path output**
+**Result (2026-09-25): tie guard clear — 0 of 8 tied.** Vote matrix captured from the DB path
+via the `prepare_papp_descriptors()` helper Task 6 exposed for exactly this purpose. All 8
+chemicals win class 3, narrowest margin 71 votes (`CICHEM001945799`, 65/182/253). The
+class-based comparison is therefore safe for this set and `PARITY: TRUE` is not a coin flip.
+No chemical substitution was needed.
+
+- [x] **Step 1: Capture the `main` database path output**
 
 From this repo, using a worktree so the feature branch stays checked out:
 
@@ -2204,7 +2210,29 @@ cat("captured\n")
 
 Run: `Rscript baseline/capture-db-main.R` from `../httkqspr-main`, then copy `db-parity-main.rds` into this repo's `baseline/`.
 
-- [ ] **Step 2: Write the parity script**
+**Result (2026-09-25): captured, but Step 1 as originally written could not run.** A fresh
+worktree has neither `rv/` nor `.Renviron` — both are git-ignored, so neither appears in any
+checkout. This repo has no `.Renviron` at all; the only copy of `PIPELINES_CONN_STR` on this
+machine is `../pipelines-r/.Renviron`. The capture script therefore opens with:
+
+```r
+.libPaths(normalizePath("../dawson2021-httkqspr/rv/library/4.6/x86_64"))
+readRenviron("../pipelines-r/.Renviron")
+```
+
+which reuses the already-populated library and existing credential file, installing nothing and
+writing to neither sibling repo.
+
+**The `search_path` bug on `main` is latent, and was correctly left alone.** `main`'s
+`pg_utils.R` still contains the defect Task 8 fixed in `pipelines-r`, but it never fires here:
+`main`'s `get_opera()` and `get_padel()` each open their **own** connection, and the
+schema-bearing query is the last one on it (`get_padel()` runs `valid.descs` without a schema
+first, then `Padel` with `schema = "public"`). The corrupted restore therefore always lands on
+a connection that is immediately discarded. `pipelines-r` was affected only because
+`get_descriptors()` shares one `con` across both calls. Corollary: the Task 8 `pg_utils` fix is
+not a parity risk — it changes only restore semantics, which `main` never exercised.
+
+- [x] **Step 2: Write the parity script**
 
 Create `../pipelines-r/scripts/verify_httkqspr_parity.R`:
 
@@ -2322,7 +2350,21 @@ Expected: `PARITY: TRUE` with all three endpoints matching.
 
 If it fails, the moved SQL or name-mangling diverged. Do not proceed to Task 11. Report which endpoint and column differ.
 
-- [ ] **Step 4: Remove the worktree and commit**
+**Result (2026-09-25): `PARITY: TRUE`, exit code 0.** Re-run independently by the controller:
+
+```
+--- clint --- rows: 8 vs 8 MATCH: TRUE
+--- fup --- rows: 8 vs 8 MATCH: TRUE
+--- papp --- rows: 8 vs 8 MATCH: TRUE
+
+PARITY: TRUE
+```
+
+The committed script was checked for weakened assertions and has none: `all.equal()` carries no
+added `tolerance=`, there is no row subsetting or `head()`, and failure still exits non-zero.
+**The Task 11 gate is open.**
+
+- [x] **Step 4: Remove the worktree and commit**
 
 ```bash
 cd ../dawson2021-httkqspr
@@ -2334,6 +2376,17 @@ cd ../pipelines-r
 git add scripts/verify_httkqspr_parity.R
 git commit -m "test: add manual httkqspr database parity check"
 ```
+
+**Result (2026-09-25): committed.** `47a82c1` in this repo (`baseline/capture-db-main.R`),
+`b0434f9` in `pipelines-r` (`scripts/verify_httkqspr_parity.R`). Both trees clean, `../pipelines`
+untouched, no stray diagnostic scripts left behind.
+
+**Known cosmetic residue:** `git worktree remove` deleted the worktree directory but could not
+delete `.git/worktrees/httkqspr-main/logs` \u2014 OneDrive holds a lock on it, so `git worktree
+prune` reports `Permission denied`. `git worktree list` no longer reports the worktree, so git
+does not consider it live and nothing is blocked. Per the repo rule never to delete anything
+under `.git` by hand, this was left in place; it clears itself once OneDrive releases the
+handle, or with a manual `git worktree prune` later.
 
 ---
 
