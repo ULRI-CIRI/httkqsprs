@@ -15,10 +15,11 @@ ignored.}
 A named list with two elements:
 \describe{
 \item{output}{Data frame with one row per chemical and columns:
-\code{DTXSID} (identifier copied from the first input column),
+\code{MoleculeID} (identifier carried over from the input frame),
 \code{Pab.Class.Pred} (predicted Papp class/bin),
-\code{Pab.Pred.AD} (applicability-domain flag; \code{1} = in-domain,
-\code{0} = out-of-domain), and
+\code{Pab.Pred.AD} (applicability-domain flag; \code{1} = OUTSIDE the
+applicability domain, \code{0} = inside, matching the \code{Outlier} convention
+in \code{\link[=calc_roy_ad]{calc_roy_ad()}}), and
 \code{Pab.Quant.Pred.Median} (median log Papp for the predicted bin),
 \code{Pab.Quant.Pred.LowerCI} (lower percentile bound), and
 \code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from \code{qspr.summary}.}
