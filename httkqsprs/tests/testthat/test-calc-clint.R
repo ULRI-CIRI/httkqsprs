@@ -5,10 +5,15 @@ test_that("clint predictions match the pre-refactor golden output", {
   expect_golden_output(got$output, expected$output, "Clint")
 })
 
+# $missing contract: a data frame of the chemicals excluded for incomplete
+# descriptors. Every input chemical must land in exactly one of the two
+# frames, so a caller can account for anything that has no prediction.
 test_that("clint reports incomplete chemicals in $missing", {
   expected <- readRDS(test_path("fixtures", "expected-clint.rds"))
-  got <- calc_clint(load_fixture_descriptors())
+  descriptors <- load_fixture_descriptors()
+  got <- calc_clint(descriptors)
 
+  expect_s3_class(got$missing, "data.frame")
   expect_setequal(
     as.character(got$missing$MoleculeID),
     as.character(expected$missing$MoleculeID)
@@ -19,6 +24,13 @@ test_that("clint reports incomplete chemicals in $missing", {
       as.character(got$missing$MoleculeID)
     ),
     0
+  )
+  expect_setequal(
+    c(
+      as.character(got$output$MoleculeID),
+      as.character(got$missing$MoleculeID)
+    ),
+    as.character(descriptors$MoleculeID)
   )
 })
 
@@ -45,9 +57,13 @@ test_that("a missing required column errors naming the column", {
 
 # Review Focus 1: zero-row input
 test_that("a zero-row descriptor frame returns empty results, not an error", {
-  descriptors <- load_fixture_descriptors()[0, , drop = FALSE]
+  descriptors <- load_fixture_descriptors()
+  full <- calc_clint(descriptors)
 
-  got <- calc_clint(descriptors)
-  expect_equal(nrow(got$output), 0L)
+  got <- calc_clint(descriptors[0, , drop = FALSE])
+  expect_empty_output_parity(got$output, full$output)
+
+  expect_s3_class(got$missing, "data.frame")
   expect_equal(nrow(got$missing), 0L)
+  expect_identical(names(got$missing), names(full$missing))
 })

@@ -31,6 +31,9 @@
 #'   \item Compute Roy AD metrics with [calc_roy_ad()].
 #' }
 #'
+#' A zero-row `descriptors` frame returns zero-row `output` and `missing`
+#' frames with the full column set rather than erroring.
+#'
 #' @author Daniel E. Dawson and John Wambaugh
 #'
 #' @references
@@ -89,9 +92,20 @@ calc_fup <- function(descriptors) {
   chemlistsc_fup_narm <- chemlistfupsc[which(fupscComplete == TRUE), ]
   Incompletescfup <- chemlistfupsc[which(fupscComplete == FALSE), ]
 
-  # randomForest's predict() errors on zero-row newdata, so short-circuit.
+  # randomForest's predict() errors on zero-row newdata, so short-circuit --
+  # but still build the full column set. An empty result has to be a drop-in
+  # for a populated one, or generate_preds() writes a CSV whose header row
+  # differs from a normal run.
   if (nrow(chemlistsc_fup_narm) == 0) {
-    return(list(output = chemlistsc_fup_narm, missing = Incompletescfup))
+    chemlistsc_fup_narm$Fup.RF.pred <- numeric(0)
+    SIdf <- calc_roy_ad(
+      data = chemlistsc_fup_narm,
+      model_vars = fupmodvars
+    )
+    return(list(
+      output = data.frame(chemlistsc_fup_narm, SIdf),
+      missing = Incompletescfup
+    ))
   }
 
   set.seed(1255)

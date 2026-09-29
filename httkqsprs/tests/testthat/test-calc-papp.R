@@ -5,9 +5,15 @@ test_that("papp predictions match the pre-refactor golden output", {
   expect_golden_output(got$output, expected$output, "Papp")
 })
 
+# $missing contract: unlike Clint and Fup, Papp never excludes a chemical --
+# it mean-imputes absent descriptors -- so $missing is documented as always
+# NULL. Every input chemical must therefore appear in $output.
 test_that("papp returns NULL for missing, since it imputes", {
-  got <- calc_papp(load_fixture_descriptors())
+  descriptors <- load_fixture_descriptors()
+  got <- calc_papp(descriptors)
+
   expect_null(got$missing)
+  expect_equal(nrow(got$output), nrow(descriptors))
 })
 
 # The packaged caret model's internal `modelInfo$predict` closure is enclosed
@@ -63,6 +69,32 @@ test_that("a missing required column errors naming the column", {
   descriptors[[dropped]] <- NULL
 
   expect_error(calc_papp(descriptors), regexp = dropped, fixed = TRUE)
+})
+
+# Review Focus 1: zero-row input. generate_preds() calls all three endpoints,
+# so a header-only CSV pair must not take the pipeline down.
+test_that("a zero-row descriptor frame returns empty results, not an error", {
+  descriptors <- load_fixture_descriptors()
+  full <- calc_papp(descriptors)
+
+  got <- calc_papp(descriptors[0, , drop = FALSE])
+  expect_empty_output_parity(got$output, full$output)
+
+  # NULL on empty input too, matching the documented contract above.
+  expect_null(got$missing)
+})
+
+# The crash this guards was inside prepare_papp_descriptors(): with no rows,
+# httk::calc_ionization() is never called, so `fraction_neutral` -- a required
+# model descriptor -- was never created and the papp_opt_desc subset failed.
+test_that("prepare_papp_descriptors() keeps every model column on zero rows", {
+  prepared <- prepare_papp_descriptors(
+    load_fixture_descriptors()[0, , drop = FALSE]
+  )
+
+  expect_equal(nrow(prepared), 0L)
+  expect_identical(names(prepared), httkqsprs::papp_opt_desc)
+  expect_true("fraction_neutral" %in% names(prepared))
 })
 
 # Review Focus 7: the six descriptors calc_papp() can never source are
