@@ -39,6 +39,9 @@ Workflow:
 \code{tsdagtable}.
 \item Compute Roy AD metrics with \code{\link[=calc_roy_ad]{calc_roy_ad()}}.
 }
+
+A zero-row \code{descriptors} frame returns zero-row \code{output} and \code{missing}
+frames with the full column set rather than erroring.
 }
 \references{
 Dawson, Daniel E., et al. (2021). Designing QSARs for parameters of

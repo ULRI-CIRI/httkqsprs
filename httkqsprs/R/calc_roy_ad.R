@@ -56,6 +56,22 @@ calc_roy_ad <- function(
   z_multiplier = 1.28
 ) {
   ad_data <- data[, model_vars]
+
+  # apply() over zero rows returns a list rather than a numeric vector, and
+  # the `$Outlier <- 0` assignment below then fails with "replacement has 1
+  # row, data has 0". Short-circuit with the documented column set so callers
+  # can rely on the shape regardless of row count.
+  if (nrow(data) == 0) {
+    return(data.frame(
+      SImin = numeric(0),
+      SImax = numeric(0),
+      SImean = numeric(0),
+      SIsd = numeric(0),
+      SI90 = numeric(0),
+      Outlier = numeric(0)
+    ))
+  }
+
   ad_data <- abs(ad_data)
 
   SImin <- apply(ad_data, 1, min)

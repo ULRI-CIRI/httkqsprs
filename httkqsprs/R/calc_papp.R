@@ -37,6 +37,9 @@
 #' recalculated at pH 7.4 via [httk::calc_ionization()]. If ionization inputs
 #' are absent, `fraction_neutral` is handled through mean imputation.
 #'
+#' A zero-row `descriptors` frame returns a zero-row `output` with the full
+#' column set rather than erroring.
+#'
 #' Applicability domain follows the Roy et al. (2015) rule as implemented in
 #' the source RMarkdown:
 #'
@@ -62,6 +65,22 @@ calc_papp <- function(descriptors) {
   papp_qspr_summary <- httkqsprs::papp_qspr_summary
 
   papp_desc <- prepare_papp_descriptors(descriptors)
+
+  # Both caret's predict.train() and calc_roy_ad() error on zero-row input, so
+  # short-circuit with a correctly typed empty frame. Mirrors the zero-row
+  # guards in calc_clint() and calc_fup().
+  if (nrow(papp_desc) == 0) {
+    empty <- data.frame(
+      MoleculeID = descriptors[["MoleculeID"]][0],
+      Pab.Class.Pred = factor(character(0), levels = papp_classmodopt$levels),
+      Pab.Pred.AD = integer(0),
+      Pab.Quant.Pred.Median = numeric(0),
+      Pab.Quant.Pred.LowerCI = numeric(0),
+      Pab.Quant.Pred.UpperCI = numeric(0),
+      stringsAsFactors = FALSE
+    )
+    return(list(output = empty, missing = NULL))
+  }
 
   # `papp_classmodopt` is a legacy caret::train object. Its internal
   # `modelInfo$predict` closure was saved with `.GlobalEnv` as its enclosing
@@ -149,9 +168,19 @@ prepare_papp_descriptors <- function(descriptors) {
 
     if (length(ion_list) > 0) {
       ion_names <- names(ion_list[[1]])
-      for (nm in ion_names) {
-        papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
-      }
+    } else {
+      # With zero input rows there is no first element to read names from.
+      # Probe `calc_ionization()` instead, because `fraction_neutral` is a
+      # required model descriptor: skipping this loop entirely would leave it
+      # absent and make the `papp_opt_desc` subset below fail with an opaque
+      # "undefined columns selected". `vapply()` over an empty list yields
+      # `numeric(0)`, so the frame stays zero-row.
+      ion_names <- names(
+        httk::calc_ionization(pH = 7.4, pKa_Donor = NA, pKa_Accept = NA)
+      )
+    }
+    for (nm in ion_names) {
+      papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
     }
   }
 

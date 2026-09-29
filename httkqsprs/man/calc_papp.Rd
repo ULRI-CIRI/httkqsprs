@@ -46,6 +46,9 @@ If \code{pKa_a_pred} and \code{pKa_b_pred} are present, \code{fraction_neutral} 
 recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}. If ionization inputs
 are absent, \code{fraction_neutral} is handled through mean imputation.
 
+A zero-row \code{descriptors} frame returns a zero-row \code{output} with the full
+column set rather than erroring.
+
 Applicability domain follows the Roy et al. (2015) rule as implemented in
 the source RMarkdown:
 \itemize{

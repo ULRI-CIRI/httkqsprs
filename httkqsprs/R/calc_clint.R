@@ -31,6 +31,9 @@
 #'   \item Compute Roy AD metrics with [calc_roy_ad()].
 #' }
 #'
+#' A zero-row `descriptors` frame returns zero-row `output` and `missing`
+#' frames with the full column set rather than erroring.
+#'
 #' @author Daniel E. Dawson and John Wambaugh
 #'
 #' @references
@@ -83,9 +86,25 @@ calc_clint <- function(descriptors) {
   chemlistsc_Clint_narm <- chemlistsc_Clint[which(ClintComplete == TRUE), ]
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
 
-  # randomForest's predict() errors on zero-row newdata, so short-circuit.
+  # randomForest's predict() errors on zero-row newdata, so short-circuit --
+  # but still build the full column set. An empty result has to be a drop-in
+  # for a populated one, or generate_preds() writes a CSV whose header row
+  # differs from a normal run.
   if (nrow(chemlistsc_Clint_narm) == 0) {
-    return(list(output = chemlistsc_Clint_narm, missing = IncompleteClint))
+    chemlistsc_Clint_narm$ClintPredictBin <- factor(
+      character(0),
+      levels = ClintClass3Mod$classes
+    )
+    chemlistsc_Clint_narm$ClintPredictBin_MD <- numeric(0)
+    chemlistsc_Clint_narm$ClintPredictBin_SD <- numeric(0)
+    SIdf <- calc_roy_ad(
+      data = chemlistsc_Clint_narm,
+      model_vars = clintmodvars
+    )
+    return(list(
+      output = data.frame(chemlistsc_Clint_narm, SIdf),
+      missing = IncompleteClint
+    ))
   }
 
   set.seed(1255)
