@@ -40,6 +40,9 @@ read_descriptor_csvs <- function(
   Opera <- read.csv(opera_path)
   Padel <- read.csv(padel_path)
 
+  require_key_column(Opera, "MoleculeID", opera_path)
+  require_key_column(Padel, "Name", padel_path)
+
   needs <- lapply(c("clint", "fup", "papp"), required_descriptors)
   opera_desc <- unique(unlist(lapply(needs, `[[`, "opera")))
   padel_desc <- unique(unlist(lapply(needs, `[[`, "padel")))
@@ -62,4 +65,29 @@ read_descriptor_csvs <- function(
     by.y = "Name",
     all.x = TRUE
   )
+}
+
+#' Fail loudly when a descriptor CSV lacks its identifier column
+#'
+#' The OPERA and PaDEL exports key on different column names. Without this
+#' check a mis-keyed file reaches the column subset and fails with
+#' `undefined columns selected`, which names neither the file nor the
+#' column the user has to fix.
+#'
+#' @param df The data frame read from `path`.
+#' @param col Name of the identifier column the file must carry.
+#' @param path Path the frame was read from, for the error message.
+#' @return `NULL`, invisibly. Called for its side effect.
+#' @noRd
+require_key_column <- function(df, col, path) {
+  if (!col %in% names(df)) {
+    stop(
+      "Descriptor file is missing its `",
+      col,
+      "` identifier column: ",
+      path,
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
 }
