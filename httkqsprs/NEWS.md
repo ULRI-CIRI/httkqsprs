@@ -27,6 +27,21 @@ and `DBI` dependencies. No predicted value changes as a result.
 
 ## Bug fixes
 
+* `calc_papp()` now clamps infinite descriptors to +/-100 standard deviations,
+  preserving sign. The clamp runs after standardization, where the frame is
+  already in z-units and "100 SDs" is literally 100, but it multiplied by the
+  raw training SD -- and read that SD from the mean/SD table by column
+  POSITION, while the surrounding standardization loop reads it by NAME. The
+  two tables carry different column orders (25 columns versus 98), so 24 of
+  the 25 positions resolved to an unrelated descriptor's SD, leaving each
+  descriptor clamped to a different distance from the mean. The clamp also
+  discarded the sign, pushing a `-Inf` to the high end of the model's range
+  rather than the low end. **No predicted value changes**: the Papp vote
+  matrix for all 4052 April-2026 chemicals is identical to the pre-refactor
+  baseline, as are the Roy applicability-domain flags. `MAXDN` is the only
+  model descriptor carrying infinities in that dataset and all four of its
+  infinite values are positive, so the sign defect was latent rather than
+  active.
 * `calc_papp()` no longer fails when the caller has an object named `predict`
   in their global environment. The packaged model carries a `caret` closure
   enclosed in `.GlobalEnv` that calls `predict()` unqualified; that call is now

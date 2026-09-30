@@ -115,6 +115,61 @@ test_that("the six unsourceable descriptors stay constant after preparation", {
   }
 })
 
+# Regression guard for the infinity clamp in prepare_papp_descriptors().
+#
+# The clamp runs AFTER standardization, so the frame is in z-units and "100
+# SDs" is literally 100. Two earlier forms of this line were wrong: it scaled
+# by the training SD (leaving each descriptor at a different distance, and
+# reading the SD by POSITION from a table whose column order does not match
+# `papp_opt_desc`), and it dropped the sign, so a -Inf was clamped to a large
+# POSITIVE value at the opposite end of the model's range.
+#
+# `MAXDN` is the descriptor that actually carries infinities in the April-2026
+# inputs; the injected cases below cover the sign handling that real data does
+# not currently reach.
+test_that("an infinite descriptor is clamped to +/-100 SDs, preserving sign", {
+  descriptors <- load_fixture_descriptors()
+
+  # Opposite signs, in different rows and different columns, so neither a
+  # dropped sign nor a value broadcast across the frame can pass.
+  descriptors[["MLFER_BO"]][1] <- Inf
+  descriptors[["TopoPSA"]][2] <- -Inf
+
+  prepared <- prepare_papp_descriptors(descriptors)
+
+  expect_equal(prepared[["MLFER_BO"]][1], 100)
+  expect_equal(prepared[["TopoPSA"]][2], -100)
+
+  # The clamp must not depend on the descriptor's own SD. These two differ by
+  # ~50x (1.46 vs 74.88), so any reintroduction of an SD factor would push the
+  # magnitudes apart and fail here.
+  expect_equal(
+    abs(prepared[["MLFER_BO"]][1]),
+    abs(prepared[["TopoPSA"]][2])
+  )
+  expect_false(
+    isTRUE(all.equal(
+      as.numeric(papp_train_msd[2, "MLFER_BO"]),
+      as.numeric(papp_train_msd[2, "TopoPSA"])
+    ))
+  )
+})
+
+# The clamp is load-bearing: randomForest's compiled predictor and
+# calc_roy_ad() both reject non-finite input, so an unclamped infinity would
+# abort the whole frame rather than degrade one row.
+test_that("an infinite descriptor still yields predictions for every row", {
+  descriptors <- load_fixture_descriptors()
+  descriptors[["MLFER_BO"]][1] <- Inf
+  descriptors[["TopoPSA"]][2] <- -Inf
+
+  got <- calc_papp(descriptors)
+
+  expect_equal(nrow(got$output), nrow(descriptors))
+  expect_false(anyNA(got$output$Pab.Class.Pred))
+  expect_false(anyNA(got$output$Pab.Pred.AD))
+})
+
 # Tie handling (see Global Constraints): Papp parity is asserted on the vote
 # matrix, never on the predicted class. Needs the full April-2026 inputs and
 # the Task 1 baseline, so it skips where those are absent.
