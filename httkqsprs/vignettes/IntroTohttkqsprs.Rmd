@@ -23,17 +23,17 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=5, fig.height=4)
 High throughput toxicokinetics ("HTTK") is the
 combination of in vitro TK data and generic mathematical models to
 predict absorption, distribution, metabolism, and excretion by the
-body, as decribed by [Pearce et al. (2017)](https://doi.org/10.18637/jss.v079.i04) and
+body, as described by [Pearce et al. (2017)](https://doi.org/10.18637/jss.v079.i04) and
 [Breen et al. (2021)](https://doi.org/10.1080/17425255.2021.1935867).
 Chemical-specific in vitro TK data are available for only a few thousand
 chemicals. [Dawson et al. (2021)](https://doi.org/10.1021/acs.est.0c06117) and
-[Honda et al. (2025)](https://doi.org/10.1021/10.14573/altex.2403271)
+[Honda et al. (2025)](https://doi.org/10.14573/altex.2403271)
 developed a series of random forest Quantitative Structure-Property Relationship (QSPR)
 models to predict these parameters for a broader set of chemicals.
 The QSPR models require structure-derived chemical-specific descriptors from
 [Padel](https://doi.org/10.1002/jcc.21707) and [OPERA](https://doi.org/10.1186/s13321-018-0263-1).
 Assuming the user can generate these descriptors, or has access to a database of pre-generated
-descriptors, then this package can be used to calculate the HTTK parameter Clint (inrinsic hepatic clearance),
+descriptors, then this package can be used to calculate the HTTK parameter Clint (intrinsic hepatic clearance),
 fup (fraction unbound in plasma), and Papp (apparent membrane permeability in a Caco-2 experiment).
 
 ## Getting Started
@@ -57,21 +57,29 @@ If you are cutting and pasting from software like Word or Outlook you may need
 to replace the quotation marks that curve toward each other with ones typed by
 the keyboard.
 
-### Installing R package "httk"
-```{r install_httk, eval = FALSE}
-install.packages("httkqsprs")
+### Installing R package "httkqsprs"
+
+The package is not on CRAN. Install it from the repository, pointing at the
+`httkqsprs` subdirectory:
+```{r install_httkqsprs, eval = FALSE}
+# install.packages("remotes")
+remotes::install_github(
+  "ULRI-CIRI/dawson2021-httkqspr",
+  subdir = "httkqsprs"
+)
 ```
 
-### “Write Privileges” On Your Personal Computer.
-```{r write_privileges, eval = FALSE}
- Depending on the account you are using and where you want to install the package on that computer, you may need “permission” from your local file system to install the package. See this help here:
+### "Write Privileges" On Your Personal Computer
+
+Depending on the account you are using and where you want to install the
+package on that computer, you may need "permission" from your local file system
+to install the package. See the help here:
 
 <https://stackoverflow.com/questions/42807247/installing-package-cannot-open-file-permission-denied>
 
 and here:
 
 <https://support.microsoft.com/en-us/topic/general-problem-installing-any-r-package-0bf1f9ba-ead2-6335-46ec-190f6af75e44>
-```
 
 ### Delete all objects from memory:
 It is a bad idea to let variables and other information from previous R
@@ -124,22 +132,22 @@ Papp imputes missing descriptors rather than excluding chemicals, so
 
 ## Help
 
-* Getting help with R Package httk
+* Getting help with R package httkqsprs
 ```{r help1, eval = FALSE}
-help(httk)
+help(package = "httkqsprs")
 ```
 
-* You can go straight to the index:
+* Help for an individual function:
 ```{r help2, eval = FALSE}
-help(package = httk)
+help(generate_preds)
 ```
 
-* List all vignettes for httk
+* List all vignettes for httkqsprs
 ```{r help3, eval = FALSE}
-vignette(package = "httk")
+vignette(package = "httkqsprs")
 ```
 
-* Displays the vignette for a specified vignette
+* Display this vignette
 ```{r help4, eval = FALSE}
-vignette("1_IntroToHTTK")
+vignette("IntroTohttkqsprs")
 ```
