@@ -130,6 +130,50 @@ Chemicals missing a descriptor that Clint or Fup requires are excluded from
 Papp imputes missing descriptors rather than excluding chemicals, so
 `out$Papp$missing` is `NULL`.
 
+* Predict from a descriptor frame you assembled yourself
+
+`generate_preds()` is a convenience wrapper over the CSV layout above. The
+package's actual interface is a data frame: each of `calc_clint()`,
+`calc_fup()`, and `calc_papp()` takes one data frame keyed on a `MoleculeID`
+column, with one column per descriptor. Use this when your descriptors come
+from a database, an API, or any source that is not the two-CSV layout.
+
+`required_descriptors()` reports exactly which descriptor columns an endpoint
+needs, split by the source they come from. OPERA names carry a `_pred` suffix
+and PaDEL names do not, so the two sets never collide and can be merged into
+one wide frame.
+```{r required_descriptors, eval = TRUE}
+needs <- required_descriptors("fup")
+needs$opera
+needs$padel
+```
+
+Retrieve those columns however you like, assemble them into a frame, and
+predict. Extra columns are ignored, so one wide frame covering all three
+endpoints can be passed to all three functions.
+```{r calc_from_frame, eval = FALSE}
+# `descriptors` is your data frame: MoleculeID plus the descriptor columns
+fup <- calc_fup(descriptors)
+fup$output # chemicals with a complete descriptor set
+fup$missing # chemicals dropped for a missing descriptor
+```
+
+If a required column is absent the function stops and names the columns it
+could not find, rather than predicting from partial inputs.
+
+`read_descriptor_csvs()` is exported for the middle case: you want the CSV
+layout read and merged for you, but you want the descriptor frame rather
+than all three sets of predictions.
+```{r read_descriptor_csvs, eval = FALSE}
+descriptors <- read_descriptor_csvs(
+  "NewHTTK_April_2026",
+  input.folder = "path/to/descriptor/files",
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+)
+calc_papp(descriptors)$output
+```
+
 ## Help
 
 * Getting help with R package httkqsprs
