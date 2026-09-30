@@ -143,6 +143,50 @@ test_that("a mis-keyed PaDEL file errors naming the file and the column", {
   )
 })
 
+test_that("a chemical missing from OPERA is reported, not silently dropped", {
+  opera <- read.csv(test_path("fixtures", "subset-opera.csv"))
+  padel <- read.csv(test_path("fixtures", "subset-padel.csv"))
+
+  orphan <- as.character(padel$Name)[1]
+  opera <- opera[as.character(opera$MoleculeID) != orphan, , drop = FALSE]
+
+  tmp <- withr::local_tempdir()
+  write.csv(opera, file.path(tmp, "orphan2-opera.csv"), row.names = FALSE)
+  write.csv(padel, file.path(tmp, "orphan2-padel.csv"), row.names = FALSE)
+
+  got <- generate_preds(
+    "orphan2",
+    input.folder = tmp,
+    operapostfix = "-opera.csv",
+    padelpostfix = "-padel.csv",
+    write.files = FALSE
+  )
+
+  expect_false(orphan %in% as.character(got$Clint$output$MoleculeID))
+  expect_true(orphan %in% as.character(got$Clint$missing$MoleculeID))
+})
+
+test_that("a duplicated identifier errors instead of fanning out the merge", {
+  opera <- read.csv(test_path("fixtures", "subset-opera.csv"))
+  padel <- read.csv(test_path("fixtures", "subset-padel.csv"))
+  padel <- rbind(padel, padel[1, , drop = FALSE])
+
+  tmp <- withr::local_tempdir()
+  write.csv(opera, file.path(tmp, "dupe-opera.csv"), row.names = FALSE)
+  write.csv(padel, file.path(tmp, "dupe-padel.csv"), row.names = FALSE)
+
+  expect_error(
+    generate_preds(
+      "dupe",
+      input.folder = tmp,
+      operapostfix = "-opera.csv",
+      padelpostfix = "-padel.csv",
+      write.files = FALSE
+    ),
+    regexp = "duplicate `Name`"
+  )
+})
+
 # Review Focus 7: the CSV reader must not source the six unavailable papp
 # descriptors from OPERA, where five of them do exist. Doing so would change
 # every Papp prediction.
