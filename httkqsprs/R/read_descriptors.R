@@ -6,9 +6,13 @@
 #' [calc_papp()] consume.
 #'
 #' The PaDEL file keys its identifier column as `Name` while OPERA uses
-#' `MoleculeID`; the merge is left-outer on OPERA, so a chemical present in
-#' OPERA but absent from PaDEL survives with `NA` PaDEL values and is later
-#' reported as incomplete rather than predicted.
+#' `MoleculeID`; the merge is a full outer join, so a chemical present in
+#' only one of the two files survives with `NA` values from the other and is
+#' later reported as incomplete rather than silently dropped. This matches
+#' the frame `pipelines-r` builds from the database.
+#'
+#' Identifiers must be unique within each file. A duplicated key would fan
+#' out the merge and yield more prediction rows than input chemicals.
 #'
 #' Descriptors are taken from whichever source [required_descriptors()]
 #' assigns them to, never from the other file. Several PaDEL-assigned Papp
@@ -16,12 +20,32 @@
 #' there would change every Papp prediction, so they are deliberately
 #' backfilled as `NA` and mean-imputed downstream instead.
 #'
+#' [generate_preds()] calls this and then all three `calc_*()` functions.
+#' Call it directly when you want the descriptor frame itself -- to predict a
+#' single endpoint, to inspect what was backfilled, or to merge in
+#' descriptors from another source before predicting.
+#'
 #' @param datalabel Character scalar prefixing both filenames.
 #' @param input.folder Directory containing the two files.
 #' @param operapostfix Filename postfix of the OPERA CSV.
 #' @param padelpostfix Filename postfix of the PaDEL CSV.
 #' @return A data frame keyed on `MoleculeID`.
-#' @noRd
+#'
+#' @seealso [required_descriptors()] for the descriptor names each endpoint
+#'   needs, and [generate_preds()] for the all-endpoint workflow.
+#'
+#' @examples
+#' \dontrun{
+#' descriptors <- read_descriptor_csvs(
+#'   "NewHTTK_April_2026",
+#'   input.folder = "path/to/descriptor/files",
+#'   operapostfix = "-smi_OPERA2.9Pred.csv",
+#'   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+#' )
+#' calc_fup(descriptors)$output
+#' }
+#'
+#' @export read_descriptor_csvs
 read_descriptor_csvs <- function(
   datalabel,
   input.folder,
@@ -58,12 +82,15 @@ read_descriptor_csvs <- function(
   Opera <- Opera[, c("MoleculeID", opera_desc), drop = FALSE]
   Padel <- Padel[, c("Name", padel_desc), drop = FALSE]
 
+  # Full outer join, matching pipelines-r's get_descriptors(). A chemical
+  # present in only one file survives with `NA` from the other and is
+  # reported as incomplete downstream.
   merge(
     Opera,
     Padel,
     by.x = "MoleculeID",
     by.y = "Name",
-    all.x = TRUE
+    all = TRUE
   )
 }
 
@@ -73,6 +100,10 @@ read_descriptor_csvs <- function(
 #' check a mis-keyed file reaches the column subset and fails with
 #' `undefined columns selected`, which names neither the file nor the
 #' column the user has to fix.
+#'
+#' Also rejects duplicate identifiers. A repeated key fans out the merge --
+#' two PaDEL rows for one chemical silently produce two prediction rows for
+#' it -- which no downstream step detects.
 #'
 #' @param df The data frame read from `path`.
 #' @param col Name of the identifier column the file must carry.
@@ -89,5 +120,23 @@ require_key_column <- function(df, col, path) {
       call. = FALSE
     )
   }
+
+  dupes <- unique(df[[col]][duplicated(df[[col]])])
+  if (length(dupes) > 0) {
+    shown <- as.character(dupes)[seq_len(min(5L, length(dupes)))]
+    stop(
+      "Descriptor file has duplicate `",
+      col,
+      "` values: ",
+      path,
+      "\n  ",
+      paste(shown, collapse = ", "),
+      if (length(dupes) > length(shown)) {
+        paste0(" (and ", length(dupes) - length(shown), " more)")
+      },
+      call. = FALSE
+    )
+  }
+
   invisible(NULL)
 }
