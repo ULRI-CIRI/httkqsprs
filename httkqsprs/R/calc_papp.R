@@ -5,8 +5,9 @@
 #' random forest model.
 #'
 #' The function also maps predicted bins to summary quantitative ranges in
-#' `qspr.summary`, producing three numeric columns (`Pab.Quant.Pred.Median`,
-#' `Pab.Quant.Pred.LowerCI`, `Pab.Quant.Pred.UpperCI`).
+#' `papp_qspr_summary`, producing three numeric columns
+#' (`Pab.Quant.Pred.Median`, `Pab.Quant.Pred.LowerCI`,
+#' `Pab.Quant.Pred.UpperCI`).
 #'
 #' @param descriptors A data frame keyed on `MoleculeID` containing at least
 #'   the columns named by `required_descriptors("papp")`. Extra columns are
@@ -22,20 +23,23 @@
 #'     in [calc_roy_ad()]), and
 #'     `Pab.Quant.Pred.Median` (median log Papp for the predicted bin),
 #'     `Pab.Quant.Pred.LowerCI` (lower percentile bound), and
-#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from `qspr.summary`.}
+#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from
+#'     `papp_qspr_summary`.}
 #'   \item{missing}{`NULL`; Papp handles missing descriptors via mean
 #'     imputation rather than case exclusion.}
 #' }
 #'
 #' @details
-#' Required descriptor names are taken from `opt.desc` and expected training-set
-#' means/SDs from `train_msd`. If a required descriptor is absent in the
-#' supplied frame, it is created as `NA` and then imputed from `train_msd`
-#' (row 1 means), matching the original workflow behavior.
+#' Required descriptor names are taken from `papp_opt_desc` and expected
+#' training-set means/SDs from `papp_train_msd`. Descriptors that are present
+#' but `NA` are imputed from `papp_train_msd` (row 1 means), matching the
+#' original workflow behavior. Descriptors that are absent entirely are an
+#' error: see `required_descriptors("papp")` for the contract.
 #'
-#' If `pKa_a_pred` and `pKa_b_pred` are present, `fraction_neutral` is
-#' recalculated at pH 7.4 via [httk::calc_ionization()]. If ionization inputs
-#' are absent, `fraction_neutral` is handled through mean imputation.
+#' `fraction_neutral` is recalculated at pH 7.4 via [httk::calc_ionization()]
+#' from `pKa_a_pred` and `pKa_b_pred`, both of which
+#' `required_descriptors("papp")` demands even though the model never consumes
+#' them directly.
 #'
 #' A zero-row `descriptors` frame returns a zero-row `output` with the full
 #' column set rather than erroring.
@@ -156,32 +160,32 @@ prepare_papp_descriptors <- function(descriptors) {
     c(needs$opera, needs$padel)
   )
 
-  # Calculate fraction_neutral from pKa if available
-  if (all(c("pKa_a_pred", "pKa_b_pred") %in% names(papp_df))) {
-    ion_list <- lapply(seq_len(nrow(papp_df)), function(i) {
-      httk::calc_ionization(
-        pH = 7.4,
-        pKa_Donor = papp_df[i, "pKa_a_pred"],
-        pKa_Accept = papp_df[i, "pKa_b_pred"]
-      )
-    })
+  # Calculate fraction_neutral from pKa. `required_descriptors("papp")`
+  # includes both pKa columns, so subset_descriptors() above has already
+  # errored if either is absent -- this is unconditional by construction.
+  ion_list <- lapply(seq_len(nrow(papp_df)), function(i) {
+    httk::calc_ionization(
+      pH = 7.4,
+      pKa_Donor = papp_df[i, "pKa_a_pred"],
+      pKa_Accept = papp_df[i, "pKa_b_pred"]
+    )
+  })
 
-    if (length(ion_list) > 0) {
-      ion_names <- names(ion_list[[1]])
-    } else {
-      # With zero input rows there is no first element to read names from.
-      # Probe `calc_ionization()` instead, because `fraction_neutral` is a
-      # required model descriptor: skipping this loop entirely would leave it
-      # absent and make the `papp_opt_desc` subset below fail with an opaque
-      # "undefined columns selected". `vapply()` over an empty list yields
-      # `numeric(0)`, so the frame stays zero-row.
-      ion_names <- names(
-        httk::calc_ionization(pH = 7.4, pKa_Donor = NA, pKa_Accept = NA)
-      )
-    }
-    for (nm in ion_names) {
-      papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
-    }
+  if (length(ion_list) > 0) {
+    ion_names <- names(ion_list[[1]])
+  } else {
+    # With zero input rows there is no first element to read names from.
+    # Probe `calc_ionization()` instead, because `fraction_neutral` is a
+    # required model descriptor: skipping this loop entirely would leave it
+    # absent and make the `papp_opt_desc` subset below fail with an opaque
+    # "undefined columns selected". `vapply()` over an empty list yields
+    # `numeric(0)`, so the frame stays zero-row.
+    ion_names <- names(
+      httk::calc_ionization(pH = 7.4, pKa_Donor = NA, pKa_Accept = NA)
+    )
+  }
+  for (nm in ion_names) {
+    papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
   }
 
   # Restrict to only the columns required for the Papp model
