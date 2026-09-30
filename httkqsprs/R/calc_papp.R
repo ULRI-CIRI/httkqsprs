@@ -135,7 +135,7 @@ calc_papp <- function(descriptors) {
 #' Subsets `descriptors` to the Papp model's columns, derives
 #' `fraction_neutral` from pKa via [httk::calc_ionization()], standardizes
 #' against the training means/SDs, mean-imputes missing values, and clamps
-#' infinities to 100 SDs.
+#' infinities to +/-100 SDs.
 #'
 #' Exposed separately from [calc_papp()] so the random forest vote matrix can
 #' be asserted directly. Votes are deterministic, whereas the predicted class
@@ -199,16 +199,22 @@ prepare_papp_descriptors <- function(descriptors) {
 
   # Assign NA values the mean (0 after standardization) for any missing descriptors:
   papp_desc[is.na(papp_desc)] <- 0
-  # Set any infinite descriptor to 100 sd's (outside of DOA):
+  # Push any infinite descriptor to 100 SDs from the mean, keeping its sign.
+  #
+  # This clamp is required, not cosmetic: randomForest's compiled predictor
+  # rejects non-finite input outright ("NA/NaN/Inf in foreign function call"),
+  # and calc_roy_ad() below fails on it too, so an unclamped infinity aborts
+  # the prediction for every chemical in the frame, not just the affected one.
+  #
+  # `papp_desc` is already standardized here, so "100 SDs" is literally 100.
+  # Multiplying by the training SD again would re-introduce raw units and put
+  # each descriptor at a different distance from the mean. Preserving the sign
+  # keeps a -Inf at the low extreme; clamping it to a positive value would move
+  # the chemical to the opposite end of the model's range.
   inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
   for (col in inf_cols) {
     inf_rows <- which(is.infinite(papp_desc[[col]]))
-    # Index `papp_train_msd` by NAME, as the standardization loop above does.
-    # `col` is a position in `papp_desc`, and the two frames do not share a
-    # column order, so indexing by position could read a different
-    # descriptor's SD.
-    this_col <- names(papp_desc)[col]
-    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, this_col]) * 100
+    papp_desc[[col]][inf_rows] <- sign(papp_desc[[col]][inf_rows]) * 100
   }
 
   papp_desc
