@@ -22,7 +22,8 @@ applicability domain, \code{0} = inside, matching the \code{Outlier} convention
 in \code{\link[=calc_roy_ad]{calc_roy_ad()}}), and
 \code{Pab.Quant.Pred.Median} (median log Papp for the predicted bin),
 \code{Pab.Quant.Pred.LowerCI} (lower percentile bound), and
-\code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from \code{qspr.summary}.}
+\code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from
+\code{papp_qspr_summary}.}
 \item{missing}{\code{NULL}; Papp handles missing descriptors via mean
 imputation rather than case exclusion.}
 }
@@ -34,17 +35,20 @@ random forest model.
 }
 \details{
 The function also maps predicted bins to summary quantitative ranges in
-\code{qspr.summary}, producing three numeric columns (\code{Pab.Quant.Pred.Median},
-\code{Pab.Quant.Pred.LowerCI}, \code{Pab.Quant.Pred.UpperCI}).
+\code{papp_qspr_summary}, producing three numeric columns
+(\code{Pab.Quant.Pred.Median}, \code{Pab.Quant.Pred.LowerCI},
+\code{Pab.Quant.Pred.UpperCI}).
 
-Required descriptor names are taken from \code{opt.desc} and expected training-set
-means/SDs from \code{train_msd}. If a required descriptor is absent in the
-supplied frame, it is created as \code{NA} and then imputed from \code{train_msd}
-(row 1 means), matching the original workflow behavior.
+Required descriptor names are taken from \code{papp_opt_desc} and expected
+training-set means/SDs from \code{papp_train_msd}. Descriptors that are present
+but \code{NA} are imputed from \code{papp_train_msd} (row 1 means), matching the
+original workflow behavior. Descriptors that are absent entirely are an
+error: see \code{required_descriptors("papp")} for the contract.
 
-If \code{pKa_a_pred} and \code{pKa_b_pred} are present, \code{fraction_neutral} is
-recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}. If ionization inputs
-are absent, \code{fraction_neutral} is handled through mean imputation.
+\code{fraction_neutral} is recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}
+from \code{pKa_a_pred} and \code{pKa_b_pred}, both of which
+\code{required_descriptors("papp")} demands even though the model never consumes
+them directly.
 
 A zero-row \code{descriptors} frame returns a zero-row \code{output} with the full
 column set rather than erroring.
