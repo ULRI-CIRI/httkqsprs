@@ -10,6 +10,15 @@ OPERA and PaDEL CSVs directly. The `get_opera()`, `get_padel()`,
 `install_if_missing()` functions have been removed, along with the `RPostgres`
 and `DBI` dependencies. No predicted value changes as a result.
 
+## New features
+
+* `required_descriptors()` reports the OPERA and PaDEL descriptor names each
+  endpoint's model needs, so callers can retrieve exactly those columns from
+  whatever source they have.
+* `read_descriptor_csvs()` is now exported. It reads the OPERA/PaDEL file pair
+  and returns the merged descriptor frame, for callers who want the frame
+  itself rather than all three sets of predictions from `generate_preds()`.
+
 ## Breaking changes
 
 * Output column ORDER has changed relative to the previous release. The
@@ -51,6 +60,20 @@ and `DBI` dependencies. No predicted value changes as a result.
   `Outlier` convention in `calc_roy_ad()`. The values themselves never changed.
 * Corrected the `calc_papp()` documentation of the identifier column, which
   named it `DTXSID`; the function emits `MoleculeID`.
+
+## Input validation
+
+* A descriptor CSV missing its identifier column (`MoleculeID` for OPERA,
+  `Name` for PaDEL) now fails with an error naming both the file and the
+  expected column, rather than `undefined columns selected` from the
+  downstream column subset.
+* Duplicate identifiers in either descriptor CSV are now an error. A repeated
+  key fanned out the merge, producing more prediction rows than input
+  chemicals with nothing downstream detecting it.
+* `generate_preds()` now merges the two CSVs with a full outer join, matching
+  the frame `pipelines-r` builds from the database. A chemical present in
+  PaDEL but absent from OPERA is reported in `$missing` rather than dropped
+  without comment. Chemicals present in both files are unaffected.
 
 # httkqsprs 0.0.4 (2026-07-16)
 Initial public (CRAN) release (September 2026)

@@ -55,8 +55,6 @@ calc_roy_ad <- function(
   threshold = 3,
   z_multiplier = 1.28
 ) {
-  ad_data <- data[, model_vars]
-
   # apply() over zero rows returns a list rather than a numeric vector, and
   # the `$Outlier <- 0` assignment below then fails with "replacement has 1
   # row, data has 0". Short-circuit with the documented column set so callers
@@ -72,7 +70,7 @@ calc_roy_ad <- function(
     ))
   }
 
-  ad_data <- abs(ad_data)
+  ad_data <- abs(data[, model_vars])
 
   SImin <- apply(ad_data, 1, min)
   SImax <- apply(ad_data, 1, max)
