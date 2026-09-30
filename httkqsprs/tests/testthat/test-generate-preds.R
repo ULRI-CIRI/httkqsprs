@@ -101,6 +101,48 @@ test_that("a missing descriptor file errors naming the path", {
   )
 })
 
+test_that("a mis-keyed OPERA file errors naming the file and the column", {
+  opera <- read.csv(test_path("fixtures", "subset-opera.csv"))
+  padel <- read.csv(test_path("fixtures", "subset-padel.csv"))
+  names(opera)[names(opera) == "MoleculeID"] <- "DTXSID"
+
+  tmp <- withr::local_tempdir()
+  write.csv(opera, file.path(tmp, "miskey-opera.csv"), row.names = FALSE)
+  write.csv(padel, file.path(tmp, "miskey-padel.csv"), row.names = FALSE)
+
+  expect_error(
+    generate_preds(
+      "miskey",
+      input.folder = tmp,
+      operapostfix = "-opera.csv",
+      padelpostfix = "-padel.csv",
+      write.files = FALSE
+    ),
+    regexp = "MoleculeID.*miskey-opera\\.csv"
+  )
+})
+
+test_that("a mis-keyed PaDEL file errors naming the file and the column", {
+  opera <- read.csv(test_path("fixtures", "subset-opera.csv"))
+  padel <- read.csv(test_path("fixtures", "subset-padel.csv"))
+  names(padel)[names(padel) == "Name"] <- "MoleculeID"
+
+  tmp <- withr::local_tempdir()
+  write.csv(opera, file.path(tmp, "miskey2-opera.csv"), row.names = FALSE)
+  write.csv(padel, file.path(tmp, "miskey2-padel.csv"), row.names = FALSE)
+
+  expect_error(
+    generate_preds(
+      "miskey2",
+      input.folder = tmp,
+      operapostfix = "-opera.csv",
+      padelpostfix = "-padel.csv",
+      write.files = FALSE
+    ),
+    regexp = "Name.*miskey2-padel\\.csv"
+  )
+})
+
 # Review Focus 7: the CSV reader must not source the six unavailable papp
 # descriptors from OPERA, where five of them do exist. Doing so would change
 # every Papp prediction.
