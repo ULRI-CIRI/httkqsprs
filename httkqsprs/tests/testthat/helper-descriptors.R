@@ -17,6 +17,9 @@ load_fixture_descriptors <- function() {
     padel[[nm]] <- NA_real_
   }
 
+  # Full outer join, as in both pipelines-r's get_descriptors() and
+  # read_descriptor_csvs(). All three producers must agree here, or the
+  # golden fixtures stop testing the path the consumers actually take.
   merge(
     opera[, c("MoleculeID", opera_desc), drop = FALSE],
     padel[, c("MoleculeID", padel_desc), drop = FALSE],
