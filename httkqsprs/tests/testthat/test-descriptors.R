@@ -1,18 +1,18 @@
 expected <- readRDS(test_path("fixtures", "expected-descriptor-names.rds"))
 
-test_that("clint descriptors match the pre-refactor derivation", {
+test_that("clint descriptors match the committed derivation", {
   got <- required_descriptors("clint")
   expect_equal(got$opera, expected$clint$opera)
   expect_equal(got$padel, expected$clint$padel)
 })
 
-test_that("fup descriptors match the pre-refactor derivation", {
+test_that("fup descriptors match the committed derivation", {
   got <- required_descriptors("fup")
   expect_equal(got$opera, expected$fup$opera)
   expect_equal(got$padel, expected$fup$padel)
 })
 
-test_that("papp descriptors match the pre-refactor derivation", {
+test_that("papp descriptors match the committed derivation", {
   got <- required_descriptors("papp")
   expect_equal(got$opera, expected$papp$opera)
   expect_equal(got$padel, expected$papp$padel)

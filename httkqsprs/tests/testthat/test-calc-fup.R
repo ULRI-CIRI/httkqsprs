@@ -1,4 +1,4 @@
-test_that("fup predictions match the pre-refactor golden output", {
+test_that("fup predictions match the committed golden output", {
   expected <- readRDS(test_path("fixtures", "expected-fup.rds"))
   got <- calc_fup(load_fixture_descriptors())
 
