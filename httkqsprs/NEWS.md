@@ -74,8 +74,9 @@ and `DBI` dependencies. No predicted value changes as a result.
   Note the scope of the guarantee: seeding makes a given input frame
   reproducible, not a given chemical. The draw a tied row receives depends on
   how many rows precede it, so a tied chemical can still be classified
-  differently in a different batch. Papp regression tests therefore assert on
-  the vote matrix, which no RNG touches, rather than on the predicted class.
+  differently in a different batch. Papp parity is therefore checked on the
+  vote matrix, which no RNG touches, rather than on the predicted class; see
+  `scripts/verify-papp-parity.R` in the source repository.
 
   `calc_fup()` also calls `set.seed(1255)`, but `RF.fit` is a regression
   forest and consumes no randomness, so that call has never had any effect.

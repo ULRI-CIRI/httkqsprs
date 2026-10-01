@@ -1,4 +1,4 @@
-test_that("papp predictions match the pre-refactor golden output", {
+test_that("papp predictions match the committed golden output", {
   expected <- readRDS(test_path("fixtures", "expected-papp.rds"))
   got <- calc_papp(load_fixture_descriptors())
 
@@ -170,100 +170,8 @@ test_that("an infinite descriptor still yields predictions for every row", {
   expect_false(anyNA(got$output$Pab.Pred.AD))
 })
 
-# The seed added to calc_papp() only claims reproducibility for a given input
-# frame. Assert exactly that, and no more: it deliberately does NOT assert
-# that a chemical keeps its class across different batches, because the seed
-# does not provide that.
-#
-# Must use the full April-2026 inputs: the fixture subset contains no tied
-# chemical, so a fixture-based version of this test would pass whether or not
-# the seed were present.
-test_that("repeated calc_papp() calls on one frame agree on a tied chemical", {
-  root <- test_path("..", "..", "..")
-  descriptors <- read_descriptor_csvs(
-    "NewHTTK_April_2026",
-    input.folder = file.path(root, "scripts"),
-    operapostfix = "-smi_OPERA2.9Pred.csv",
-    padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
-  )
-
-  # Guard the premise: these two are tied only so long as the model and the
-  # inputs stay as captured. If the tie disappears this test silently stops
-  # testing anything, so fail instead.
-  tied_ids <- c("DTXSID4060109", "DTXSID8062575")
-  votes <- stats::predict(
-    httkqsprs::papp_classmodopt$finalModel,
-    prepare_papp_descriptors(descriptors),
-    type = "vote",
-    norm.votes = FALSE
-  )
-  top2 <- t(apply(
-    votes[match(tied_ids, descriptors$MoleculeID), , drop = FALSE],
-    1,
-    function(v) sort(v, decreasing = TRUE)[1:2]
-  ))
-  expect_equal(top2[, 1], top2[, 2], ignore_attr = TRUE)
-
-  first <- calc_papp(descriptors)$output
-  second <- calc_papp(descriptors)$output
-  expect_equal(second, first)
-
-  rows <- match(tied_ids, first$MoleculeID)
-  expect_equal(
-    as.character(second$Pab.Class.Pred[rows]),
-    as.character(first$Pab.Class.Pred[rows])
-  )
-})
-
-# Tie handling (see Global Constraints): Papp parity is asserted on the vote
-# matrix, never on the predicted class. calc_papp() now seeds the RNG, but
-# that only makes a given input frame reproducible -- the draw a tied row
-# receives still depends on how many rows precede it, so a class assertion
-# would be brittle to row count and order. Votes are unaffected by the seed
-# and are strictly more sensitive: they catch a single-vote shift that argmax
-# would hide.
-test_that("papp vote matrix matches the pre-refactor baseline", {
-  root <- test_path("..", "..", "..")
-  opera_path <- file.path(
-    root,
-    "scripts",
-    "NewHTTK_April_2026-smi_OPERA2.9Pred.csv"
-  )
-  padel_path <- file.path(
-    root,
-    "scripts",
-    "NewHTTK_April_2026_QSAR-ready_smi_PadelDesc.csv"
-  )
-
-  # Reproduce the merge calc_papp() used to do internally, so row order
-  # matches the captured baseline.
-  needs <- required_descriptors("papp")
-  opera <- read.csv(opera_path)
-  padel <- read.csv(padel_path)
-  for (nm in setdiff(needs$opera, names(opera))) {
-    opera[[nm]] <- NA_real_
-  }
-  for (nm in setdiff(needs$padel, names(padel))) {
-    padel[[nm]] <- NA_real_
-  }
-  descriptors <- merge(
-    opera[, c("MoleculeID", needs$opera), drop = FALSE],
-    padel[, c("Name", needs$padel), drop = FALSE],
-    by.x = "MoleculeID",
-    by.y = "Name",
-    all.x = TRUE
-  )
-
-  # papp_classmodopt is a caret `train` object and predict.train() rejects
-  # type = "vote", so go to the randomForest it wraps.
-  votes <- stats::predict(
-    httkqsprs::papp_classmodopt$finalModel,
-    prepare_papp_descriptors(descriptors),
-    type = "vote",
-    norm.votes = FALSE
-  )
-  baseline <- readRDS(test_path("fixtures", "expected-papp-votes.rds"))
-
-  expect_equal(dim(votes), dim(baseline))
-  expect_equal(unname(votes), unname(baseline))
-})
+# Tie handling and full-set vote-matrix parity are checked by
+# `scripts/verify-papp-parity.R`, not here. Both need the 74 MB April-2026
+# CSVs, which are not in the package tarball, so a test form of them fails
+# under `R CMD check`. The fixture subset contains no tied chemical, so there
+# is no fixture-based version of the tie check that would test anything.

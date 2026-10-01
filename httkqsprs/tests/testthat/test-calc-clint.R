@@ -1,4 +1,4 @@
-test_that("clint predictions match the pre-refactor golden output", {
+test_that("clint predictions match the committed golden output", {
   expected <- readRDS(test_path("fixtures", "expected-clint.rds"))
   got <- calc_clint(load_fixture_descriptors())
 
