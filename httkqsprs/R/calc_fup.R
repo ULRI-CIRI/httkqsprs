@@ -108,8 +108,13 @@ calc_fup <- function(descriptors) {
     ))
   }
 
-  set.seed(1255)
-  chemlistpredictfup <- stats::predict(RF.fit, chemlistsc_fup_narm)
+  # `RF.fit` is a regression forest and consumes no randomness, so the seed
+  # is inert here. Kept for symmetry with the two classification endpoints,
+  # and routed through with_seed() so it cannot disturb the caller's RNG.
+  chemlistpredictfup <- with_seed(
+    1255,
+    stats::predict(RF.fit, chemlistsc_fup_narm)
+  )
   chemlistsc_fup_narm$Fup.RF.pred <- chemlistpredictfup^2
   chemlistsc_fup_narm$Fup.RF.pred <- signif(
     chemlistsc_fup_narm$Fup.RF.pred,

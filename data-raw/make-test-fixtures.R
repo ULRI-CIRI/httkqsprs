@@ -86,11 +86,18 @@ file.copy(
   overwrite = TRUE
 )
 
+# The Papp vote matrix for the FULL April-2026 set, not the subset. It is the
+# parity baseline behind the "no predicted value changes" claim, so it is
+# tracked as a fixture rather than left in the gitignored baseline/ directory
+# where only the machine that captured it would have a copy.
+file.copy(
+  "baseline/golden-papp-votes.rds",
+  "httkqsprs/tests/testthat/fixtures/expected-papp-votes.rds",
+  overwrite = TRUE
+)
+
 message("Fixture sizes:")
 print(file.size(list.files(
   "httkqsprs/tests/testthat/fixtures",
   full.names = TRUE
 )))
-
-tied <- c("DTXSID4060109", "DTXSID8062575")
-stopifnot(!any(tied %in% selected))

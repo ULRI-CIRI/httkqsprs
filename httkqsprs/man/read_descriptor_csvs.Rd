@@ -32,8 +32,7 @@ later reported as incomplete rather than silently dropped. This matches
 the frame \code{pipelines-r} builds from the database.
 
 Identifiers must be unique within each file. A duplicated key would fan
-out the merge and yield more prediction rows than input chemicals, so it
-is an error.
+out the merge and yield more prediction rows than input chemicals.
 
 Descriptors are taken from whichever source \code{\link[=required_descriptors]{required_descriptors()}}
 assigns them to, never from the other file. Several PaDEL-assigned Papp

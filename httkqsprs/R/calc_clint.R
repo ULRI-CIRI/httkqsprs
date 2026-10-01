@@ -107,8 +107,13 @@ calc_clint <- function(descriptors) {
     ))
   }
 
-  set.seed(1255)
-  chemlistpredictClint <- stats::predict(ClintClass3Mod, chemlistsc_Clint_narm)
+  # `ClintClass3Mod` is a classification forest, so randomForest draws from
+  # the RNG to break a tied class vote. Seed for reproducibility, but restore
+  # the caller's RNG stream afterwards rather than leaving our seed in place.
+  chemlistpredictClint <- with_seed(
+    1255,
+    stats::predict(ClintClass3Mod, chemlistsc_Clint_narm)
+  )
   chemlistsc_Clint_narm$ClintPredictBin <- chemlistpredictClint
 
   chemlistsc_Clint_narm$ClintPredictBin_MD <- ifelse(

@@ -99,7 +99,15 @@ calc_papp <- function(descriptors) {
   predict_env$predict <- stats::predict
   environment(papp_classmodopt$modelInfo$predict) <- predict_env
 
-  pred <- stats::predict(papp_classmodopt, papp_desc)
+  # randomForest breaks an argmax tie between classes by drawing from the
+  # RNG, so an unseeded run can assign a different class to the same
+  # chemical. Seed as calc_clint() does, which is the only other
+  # classification forest in the package. Note this makes a given input
+  # frame reproducible, not a given chemical: the draw a row receives
+  # depends on how many rows precede it, so a tied chemical can still land
+  # differently in a different batch. That is why Papp parity is asserted on
+  # the vote matrix rather than the predicted class.
+  pred <- with_seed(1255, stats::predict(papp_classmodopt, papp_desc))
 
   ad <- calc_roy_ad(
     data = papp_desc,
