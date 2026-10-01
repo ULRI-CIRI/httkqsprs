@@ -61,6 +61,35 @@ and `DBI` dependencies. No predicted value changes as a result.
 * Corrected the `calc_papp()` documentation of the identifier column, which
   named it `DTXSID`; the function emits `MoleculeID`.
 
+## Reproducibility
+
+* `calc_papp()` now seeds the RNG with `set.seed(1255)` before predicting, as
+  `calc_clint()` already did. `randomForest` breaks a tied class vote by
+  drawing from the RNG, and exactly 2 of the 4052 April-2026 chemicals
+  (`DTXSID4060109`, `DTXSID8062575`) have perfect ties, so their
+  `Pab.Class.Pred` -- and the `Pab.Quant.Pred.*` values keyed on it -- used to
+  flip between runs. Predicted values for all 4052 chemicals are unchanged
+  against the pre-refactor baseline.
+
+  Note the scope of the guarantee: seeding makes a given input frame
+  reproducible, not a given chemical. The draw a tied row receives depends on
+  how many rows precede it, so a tied chemical can still be classified
+  differently in a different batch. Papp regression tests therefore assert on
+  the vote matrix, which no RNG touches, rather than on the predicted class.
+
+  `calc_fup()` also calls `set.seed(1255)`, but `RF.fit` is a regression
+  forest and consumes no randomness, so that call has never had any effect.
+
+* `calc_clint()`, `calc_fup()` and `calc_papp()` no longer disturb the
+  caller's RNG stream. `set.seed()` writes to `.Random.seed` in the global
+  environment, so seeding for our own reproducibility silently reset the
+  stream of whoever called us -- every subsequent random draw in their
+  session became a function of our seed rather than theirs, which matters to
+  anyone calling these functions from inside a simulation. The seed is now
+  saved and restored on exit, including the case where the caller had never
+  used the RNG at all and `.Random.seed` must be restored to not existing.
+  Predicted values are unchanged.
+
 ## Input validation
 
 * A descriptor CSV missing its identifier column (`MoleculeID` for OPERA,
