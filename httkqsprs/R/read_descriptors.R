@@ -45,6 +45,7 @@
 #' calc_fup(descriptors)$output
 #' }
 #'
+#' @importFrom utils read.csv
 #' @export read_descriptor_csvs
 read_descriptor_csvs <- function(
   datalabel,

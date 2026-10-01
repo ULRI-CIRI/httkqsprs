@@ -107,7 +107,12 @@ calc_papp <- function(descriptors) {
   # depends on how many rows precede it, so a tied chemical can still land
   # differently in a different batch. That is why Papp parity is asserted on
   # the vote matrix rather than the predicted class.
-  pred <- with_seed(1255, stats::predict(papp_classmodopt, papp_desc))
+  #
+  # Call caret's method directly rather than relying on S3 dispatch through
+  # stats::predict(). It is the same function, but naming it makes the caret
+  # dependency visible to `R CMD check`, which otherwise reports caret as
+  # declared in Imports but never used.
+  pred <- with_seed(1255, caret::predict.train(papp_classmodopt, papp_desc))
 
   ad <- calc_roy_ad(
     data = papp_desc,

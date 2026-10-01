@@ -32,6 +32,7 @@ Description: The Dawson et al. (2021) <doi:10.1021/acs.est.0c06117>
               Also included is the Honda et al. (2025) <doi:10.1016/j.tiv.2025.106150> QSPR model
               for predicting Caco-2 membrane permeability (Papp in units of cm/s).
 LazyData: true
+LazyDataCompression: xz
 Encoding: UTF-8
 Imports: randomForest, caret, httk, stringr
 Suggests: testthat (>= 3.0.0), withr, knitr, rmarkdown

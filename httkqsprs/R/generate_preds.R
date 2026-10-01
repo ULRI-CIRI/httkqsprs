@@ -57,7 +57,7 @@
 #' @references
 #' Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput
 #' toxicokinetic models using open-source descriptors."
-#' \emph{Environmental Science \& Technology} 55.9 (2021): 6505-6517.
+#' \emph{Environmental Science & Technology} 55.9 (2021): 6505-6517.
 #'
 #' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical
 #' properties and environmental fate endpoints."
@@ -71,6 +71,7 @@
 #'
 #' @import randomForest
 #' @import stringr
+#' @importFrom utils write.csv
 #' @export generate_preds
 generate_preds <- function(
   Datalabel,

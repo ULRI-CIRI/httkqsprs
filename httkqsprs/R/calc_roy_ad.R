@@ -48,6 +48,7 @@
 #' determining applicability domain of QSAR models.
 #' \emph{Chemometrics and Intelligent Laboratory Systems}, 145, 22-29.
 #'
+#' @importFrom stats sd
 #' @keywords internal
 calc_roy_ad <- function(
   data,

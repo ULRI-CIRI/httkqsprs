@@ -39,8 +39,9 @@
 #' @references
 #' Dawson, Daniel E., et al. (2021). Designing QSARs for parameters of
 #' high-throughput toxicokinetic models using open-source descriptors.
-#' \emph{Environmental Science \& Technology}, 55(9), 6505-6517.
+#' \emph{Environmental Science & Technology}, 55(9), 6505-6517.
 #'
+#' @importFrom stats complete.cases
 #' @export calc_fup
 calc_fup <- function(descriptors) {
   # Load these from package in case user hasn't loaded whole package:

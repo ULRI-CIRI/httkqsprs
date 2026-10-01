@@ -8,3 +8,11 @@ export(read_descriptor_csvs)
 export(required_descriptors)
 import(randomForest)
 import(stringr)
+importFrom(stats,
+  complete.cases,
+  sd
+)
+importFrom(utils,
+  read.csv,
+  write.csv
+)
