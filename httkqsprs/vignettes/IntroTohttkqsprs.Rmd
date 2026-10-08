@@ -1,6 +1,6 @@
 ---
 title: "Introduction to httkqsprs"
-author: "John Wambaugh and Andy Shapiro"
+author: "John Wambaugh and Zach Stanfield"
 date: "July 15, 2026"
 output: rmarkdown::html_vignette
 vignette: >

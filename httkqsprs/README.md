@@ -1,7 +1,5 @@
 # R Package "httkqpsrs"
 
-<img src="man/figures/httk.png" align="right" width="33%"/>
-
 High throughput toxicokinetics ("HTTK") is the
 combination of in vitro TK data and generic mathematical models to
 predict absorption, distribution, metabolism, and excretion by the
