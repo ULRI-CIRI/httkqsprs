@@ -4,64 +4,54 @@
 \alias{calc_papp}
 \title{Calculate Caco-2 apparent permeability (Papp) predictions}
 \usage{
-calc_papp(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-)
+calc_papp(descriptors)
 }
 \arguments{
-\item{datalabel}{Character scalar label for this prediction run.}
-
-\item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
-\code{\link[=get_opera]{get_opera()}}.}
-
-\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
-Defaults to \code{\link{getwd}}.}
+\item{descriptors}{A data frame keyed on \code{MoleculeID} containing at least
+the columns named by \code{required_descriptors("papp")}. Extra columns are
+ignored.}
 }
 \value{
 A named list with two elements:
 \describe{
 \item{output}{Data frame with one row per chemical and columns:
-\code{DTXSID} (identifier copied from the first input column),
+\code{MoleculeID} (identifier carried over from the input frame),
 \code{Pab.Class.Pred} (predicted Papp class/bin),
-\code{Pab.Pred.AD} (applicability-domain flag; \code{1} = in-domain,
-\code{0} = out-of-domain), and
+\code{Pab.Pred.AD} (applicability-domain flag; \code{1} = OUTSIDE the
+applicability domain, \code{0} = inside, matching the \code{Outlier} convention
+in \code{\link[=calc_roy_ad]{calc_roy_ad()}}), and
 \code{Pab.Quant.Pred.Median} (median log Papp for the predicted bin),
 \code{Pab.Quant.Pred.LowerCI} (lower percentile bound), and
-\code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from \code{qspr.summary}.}
+\code{Pab.Quant.Pred.UpperCI} (upper percentile bound), all from
+\code{papp_qspr_summary}.}
 \item{missing}{\code{NULL}; Papp handles missing descriptors via mean
 imputation rather than case exclusion.}
 }
 }
 \description{
-Retrieves only the descriptors required by the Papp model workflow,
-imputes missing descriptors with training-set means, calculates Roy et al.
+Imputes missing descriptors with training-set means, calculates Roy et al.
 applicability domain status, and predicts a Papp class with the selected
 random forest model.
 }
 \details{
 The function also maps predicted bins to summary quantitative ranges in
-\code{qspr.summary}, producing three numeric columns (\code{Pab.Quant.Pred.Median},
-\code{Pab.Quant.Pred.LowerCI}, \code{Pab.Quant.Pred.UpperCI}).
+\code{papp_qspr_summary}, producing three numeric columns
+(\code{Pab.Quant.Pred.Median}, \code{Pab.Quant.Pred.LowerCI},
+\code{Pab.Quant.Pred.UpperCI}).
 
-Required descriptor names are taken from \code{opt.desc} and expected training-set
-means/SDs from \code{train_msd}. If a required descriptor is absent in retrieved
-inputs, it is created as \code{NA} and then imputed from \code{train_msd} (row 1 means),
-matching the original workflow behavior.
+Required descriptor names are taken from \code{papp_opt_desc} and expected
+training-set means/SDs from \code{papp_train_msd}. Descriptors that are present
+but \code{NA} are imputed from \code{papp_train_msd} (row 1 means), matching the
+original workflow behavior. Descriptors that are absent entirely are an
+error: see \code{required_descriptors("papp")} for the contract.
 
-If \code{pKa_a_pred} and \code{pKa_b_pred} are present, \code{fraction_neutral} is
-recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}. If ionization inputs
-are absent, \code{fraction_neutral} is handled through mean imputation.
+\code{fraction_neutral} is recalculated at pH 7.4 via \code{\link[httk:calc_ionization]{httk::calc_ionization()}}
+from \code{pKa_a_pred} and \code{pKa_b_pred}, both of which
+\code{required_descriptors("papp")} demands even though the model never consumes
+them directly.
+
+A zero-row \code{descriptors} frame returns a zero-row \code{output} with the full
+column set rather than erroring.
 
 Applicability domain follows the Roy et al. (2015) rule as implemented in
 the source RMarkdown:

@@ -1,0 +1,197 @@
+---
+title: "Introduction to httkqsprs"
+author: "John Wambaugh and Zach Stanfield"
+date: "July 15, 2026"
+output: rmarkdown::html_vignette
+vignette: >
+ %\VignetteIndexEntry{Introduction to httkqsprs}
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteEncoding{UTF-8}
+---
+*Please send questions to John.Wambaugh@UL.org*
+
+### Set vignette options
+R package **knitr** generates html and PDF documents from this RMarkdown file,
+Each bit of code that follows is known as a "chunk". We start by telling
+**knitr** how we want our chunks to look.
+```{r setup_vignette, eval = TRUE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=5, fig.height=4)
+```
+
+## Description
+
+High throughput toxicokinetics ("HTTK") is the
+combination of in vitro TK data and generic mathematical models to
+predict absorption, distribution, metabolism, and excretion by the
+body, as described by [Pearce et al. (2017)](https://doi.org/10.18637/jss.v079.i04) and
+[Breen et al. (2021)](https://doi.org/10.1080/17425255.2021.1935867).
+Chemical-specific in vitro TK data are available for only a few thousand
+chemicals. [Dawson et al. (2021)](https://doi.org/10.1021/acs.est.0c06117) and
+[Honda et al. (2025)](https://doi.org/10.14573/altex.2403271)
+developed a series of random forest Quantitative Structure-Property Relationship (QSPR)
+models to predict these parameters for a broader set of chemicals.
+The QSPR models require structure-derived chemical-specific descriptors from
+[Padel](https://doi.org/10.1002/jcc.21707) and [OPERA](https://doi.org/10.1186/s13321-018-0263-1).
+Assuming the user can generate these descriptors, or has access to a database of pre-generated
+descriptors, then this package can be used to calculate the HTTK parameter Clint (intrinsic hepatic clearance),
+fup (fraction unbound in plasma), and Papp (apparent membrane permeability in a Caco-2 experiment).
+
+## Getting Started
+
+For an introduction to R, see Irizarry (2022) "Introduction to Data Science":
+<http://rafalab.dfci.harvard.edu/dsbook/getting-started.html>
+
+For an introduction to toxicokinetics, with examples in "httk", see Ring (2021) in the "TAME Toolkit":
+<https://uncsrp.github.io/Data-Analysis-Training-Modules/toxicokinetic-modeling.html>
+
+### Dependencies
+
+* Users will need the freely available R statistical computing language: <https://www.r-project.org/>
+* Users will likely want a development environment like RStudio: <https://posit.co/download/rstudio-desktop/>
+* If you get the message "Error in library(X) : there is no package called 'X'" then you will need to install that package:
+	From the R command prompt: install.packages("X")
+  Or, if using RStudio, look for 'Install Packages' under the 'Tools' tab.
+* Note that R does not recognize fancy versions of quotation marks that curve
+toward each other.
+If you are cutting and pasting from software like Word or Outlook you may need
+to replace the quotation marks that curve toward each other with ones typed by
+the keyboard.
+
+### Installing R package "httkqsprs"
+
+The package is not on CRAN. Install it from the repository, pointing at the
+`httkqsprs` subdirectory:
+```{r install_httkqsprs, eval = FALSE}
+# install.packages("remotes")
+remotes::install_github(
+  "ULRI-CIRI/dawson2021-httkqspr",
+  subdir = "httkqsprs"
+)
+```
+
+### "Write Privileges" On Your Personal Computer
+
+Depending on the account you are using and where you want to install the
+package on that computer, you may need "permission" from your local file system
+to install the package. See the help here:
+
+<https://stackoverflow.com/questions/42807247/installing-package-cannot-open-file-permission-denied>
+
+and here:
+
+<https://support.microsoft.com/en-us/topic/general-problem-installing-any-r-package-0bf1f9ba-ead2-6335-46ec-190f6af75e44>
+
+### Delete all objects from memory:
+It is a bad idea to let variables and other information from previous R
+sessions float around, so we first remove everything in the R memory.
+```{r clear_memory, eval = TRUE}
+rm(list=ls())
+```
+
+### Load the HTTK data, models, and functions
+```{r load_httk, eval = TRUE}
+library(httkqsprs)
+
+# Check what version you are using
+packageVersion("httkqsprs")
+```
+
+## Examples
+
+* Predict Clint, Fup, and Papp from OPERA and PaDEL descriptor files
+
+`generate_preds()` reads a pair of descriptor files that you supply and returns
+predictions for all three endpoints. Both files must sit in `input.folder` and
+share a common label: for the label `"NewHTTK_April_2026"` the OPERA file is
+`NewHTTK_April_2026-smi_OPERA2.9Pred.csv` and the PaDEL file is
+`NewHTTK_April_2026_QSAR-ready_smi_PadelDesc.csv`. Descriptors may come from
+running OPERA and PaDEL yourself or from a database of pre-generated
+descriptors, as long as they are exported in that file layout.
+
+The chunk below is not evaluated when the vignette is built because the
+descriptor files are supplied by you; point `input.folder` at the directory
+holding them and run it yourself.
+```{r make_predictions, eval = FALSE}
+out <- generate_preds(
+  "NewHTTK_April_2026",
+  input.folder = "path/to/descriptor/files",
+  output.folder = tempdir()
+)
+# Clint values:
+head(out$Clint$output[, c("MoleculeID", "ClintPredictBin_MD", "Outlier")])
+# Fup values:
+head(out$Fup$output[, c("MoleculeID", "Fup.RF.pred", "Outlier")])
+# Papp values:
+head(out$Papp$output[, c("MoleculeID", "Pab.Class.Pred", "Pab.Pred.AD")])
+```
+
+Chemicals missing a descriptor that Clint or Fup requires are excluded from
+`$output` and returned in `$missing` instead, for example `out$Clint$missing`.
+Papp imputes missing descriptors rather than excluding chemicals, so
+`out$Papp$missing` is `NULL`.
+
+* Predict from a descriptor frame you assembled yourself
+
+`generate_preds()` is a convenience wrapper over the CSV layout above. The
+package's actual interface is a data frame: each of `calc_clint()`,
+`calc_fup()`, and `calc_papp()` takes one data frame keyed on a `MoleculeID`
+column, with one column per descriptor. Use this when your descriptors come
+from a database, an API, or any source that is not the two-CSV layout.
+
+`required_descriptors()` reports exactly which descriptor columns an endpoint
+needs, split by the source they come from. OPERA names carry a `_pred` suffix
+and PaDEL names do not, so the two sets never collide and can be merged into
+one wide frame.
+```{r required_descriptors, eval = TRUE}
+needs <- required_descriptors("fup")
+needs$opera
+needs$padel
+```
+
+Retrieve those columns however you like, assemble them into a frame, and
+predict. Extra columns are ignored, so one wide frame covering all three
+endpoints can be passed to all three functions.
+```{r calc_from_frame, eval = FALSE}
+# `descriptors` is your data frame: MoleculeID plus the descriptor columns
+fup <- calc_fup(descriptors)
+fup$output # chemicals with a complete descriptor set
+fup$missing # chemicals dropped for a missing descriptor
+```
+
+If a required column is absent the function stops and names the columns it
+could not find, rather than predicting from partial inputs.
+
+`read_descriptor_csvs()` is exported for the middle case: you want the CSV
+layout read and merged for you, but you want the descriptor frame rather
+than all three sets of predictions.
+```{r read_descriptor_csvs, eval = FALSE}
+descriptors <- read_descriptor_csvs(
+  "NewHTTK_April_2026",
+  input.folder = "path/to/descriptor/files",
+  operapostfix = "-smi_OPERA2.9Pred.csv",
+  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv"
+)
+calc_papp(descriptors)$output
+```
+
+## Help
+
+* Getting help with R package httkqsprs
+```{r help1, eval = FALSE}
+help(package = "httkqsprs")
+```
+
+* Help for an individual function:
+```{r help2, eval = FALSE}
+help(generate_preds)
+```
+
+* List all vignettes for httkqsprs
+```{r help3, eval = FALSE}
+vignette(package = "httkqsprs")
+```
+
+* Display this vignette
+```{r help4, eval = FALSE}
+vignette("IntroTohttkqsprs")
+```

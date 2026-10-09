@@ -1,48 +1,48 @@
 #' Calculate Caco-2 apparent permeability (Papp) predictions
 #'
-#' Retrieves only the descriptors required by the Papp model workflow,
-#' imputes missing descriptors with training-set means, calculates Roy et al.
+#' Imputes missing descriptors with training-set means, calculates Roy et al.
 #' applicability domain status, and predicts a Papp class with the selected
 #' random forest model.
 #'
 #' The function also maps predicted bins to summary quantitative ranges in
-#' `qspr.summary`, producing three numeric columns (`Pab.Quant.Pred.Median`,
-#' `Pab.Quant.Pred.LowerCI`, `Pab.Quant.Pred.UpperCI`).
+#' `papp_qspr_summary`, producing three numeric columns
+#' (`Pab.Quant.Pred.Median`, `Pab.Quant.Pred.LowerCI`,
+#' `Pab.Quant.Pred.UpperCI`).
 #'
-#' @param datalabel Character scalar label for this prediction run.
-#' @param chems Optional character vector of CICHEM identifiers. If provided,
-#'   descriptors are retrieved from the database using [get_padel()] and
-#'   [get_opera()].
-#' @param operapostfix Character postfix of the OPERA descriptor CSV when
-#'   `chems` is `NULL`.
-#' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
-#'   `chems` is `NULL`.
-#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
-#'   Defaults to \code{\link{getwd}}.
+#' @param descriptors A data frame keyed on `MoleculeID` containing at least
+#'   the columns named by `required_descriptors("papp")`. Extra columns are
+#'   ignored.
 #'
 #' @return A named list with two elements:
 #' \describe{
 #'   \item{output}{Data frame with one row per chemical and columns:
-#'     `DTXSID` (identifier copied from the first input column),
+#'     `MoleculeID` (identifier carried over from the input frame),
 #'     `Pab.Class.Pred` (predicted Papp class/bin),
-#'     `Pab.Pred.AD` (applicability-domain flag; `1` = in-domain,
-#'     `0` = out-of-domain), and
+#'     `Pab.Pred.AD` (applicability-domain flag; `1` = OUTSIDE the
+#'     applicability domain, `0` = inside, matching the `Outlier` convention
+#'     in [calc_roy_ad()]), and
 #'     `Pab.Quant.Pred.Median` (median log Papp for the predicted bin),
 #'     `Pab.Quant.Pred.LowerCI` (lower percentile bound), and
-#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from `qspr.summary`.}
+#'     `Pab.Quant.Pred.UpperCI` (upper percentile bound), all from
+#'     `papp_qspr_summary`.}
 #'   \item{missing}{`NULL`; Papp handles missing descriptors via mean
 #'     imputation rather than case exclusion.}
 #' }
 #'
 #' @details
-#' Required descriptor names are taken from `opt.desc` and expected training-set
-#' means/SDs from `train_msd`. If a required descriptor is absent in retrieved
-#' inputs, it is created as `NA` and then imputed from `train_msd` (row 1 means),
-#' matching the original workflow behavior.
+#' Required descriptor names are taken from `papp_opt_desc` and expected
+#' training-set means/SDs from `papp_train_msd`. Descriptors that are present
+#' but `NA` are imputed from `papp_train_msd` (row 1 means), matching the
+#' original workflow behavior. Descriptors that are absent entirely are an
+#' error: see `required_descriptors("papp")` for the contract.
 #'
-#' If `pKa_a_pred` and `pKa_b_pred` are present, `fraction_neutral` is
-#' recalculated at pH 7.4 via [httk::calc_ionization()]. If ionization inputs
-#' are absent, `fraction_neutral` is handled through mean imputation.
+#' `fraction_neutral` is recalculated at pH 7.4 via [httk::calc_ionization()]
+#' from `pKa_a_pred` and `pKa_b_pred`, both of which
+#' `required_descriptors("papp")` demands even though the model never consumes
+#' them directly.
+#'
+#' A zero-row `descriptors` frame returns a zero-row `output` with the full
+#' column set rather than erroring.
 #'
 #' Applicability domain follows the Roy et al. (2015) rule as implemented in
 #' the source RMarkdown:
@@ -62,120 +62,57 @@
 #' \emph{Chemometrics and Intelligent Laboratory Systems}, 145, 22-29.
 #'
 #' @export calc_papp
-calc_papp <- function(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-) {
+calc_papp <- function(descriptors) {
   # Load these from package in case user hasn't loaded whole package:
   papp_opt_desc <- httkqsprs::papp_opt_desc
   papp_classmodopt <- httkqsprs::papp_classmodopt
-  papp_train_msd <- httkqsprs::papp_train_msd
   papp_qspr_summary <- httkqsprs::papp_qspr_summary
 
-  # fraction_neutral is calculated from OPERA pKa by httk but is neither an OPERA nor Padel descriptor
-  papp_opera_desc <- unique(c(
-    grep("_pred$", papp_opt_desc, value = TRUE),
-    "pKa_a_pred",
-    "pKa_b_pred"
-  ))
-  papp_padel_desc <- setdiff(
-    papp_opt_desc,
-    c("fraction_neutral", papp_opera_desc)
-  )
-  papp_mod_vars <- c(papp_opera_desc, papp_padel_desc, "fraction neutral")
+  papp_desc <- prepare_papp_descriptors(descriptors)
 
-  if (is.null(chems)) {
-    NEWOPERA <- paste0(input.folder, "/", datalabel, operapostfix)
-    NEWPADEL <- paste0(input.folder, "/", datalabel, padelpostfix)
-
-    Opera <- read.csv(NEWOPERA)
-    Padel <- read.csv(NEWPADEL)
-
-    missing_opera <- setdiff(papp_opera_desc, names(Opera))
-    if (length(missing_opera) > 0) {
-      for (nm in missing_opera) {
-        Opera[[nm]] <- NA_real_
-      }
-    }
-
-    missing_padel <- setdiff(papp_padel_desc, names(Padel))
-    if (length(missing_padel) > 0) {
-      for (nm in missing_padel) {
-        Padel[[nm]] <- NA_real_
-      }
-    }
-
-    Opera <- Opera[,
-      c(1, which(names(Opera) %in% papp_opera_desc)),
-      drop = FALSE
-    ]
-    Padel <- Padel[,
-      c(1, which(names(Padel) %in% papp_padel_desc)),
-      drop = FALSE
-    ]
-    papp_df <- merge(
-      Opera,
-      Padel,
-      by.x = "MoleculeID",
-      by.y = "Name",
-      all.x = TRUE
+  # Both caret's predict.train() and calc_roy_ad() error on zero-row input, so
+  # short-circuit with a correctly typed empty frame. Mirrors the zero-row
+  # guards in calc_clint() and calc_fup().
+  if (nrow(papp_desc) == 0) {
+    empty <- data.frame(
+      MoleculeID = descriptors[["MoleculeID"]][0],
+      Pab.Class.Pred = factor(character(0), levels = papp_classmodopt$levels),
+      Pab.Pred.AD = integer(0),
+      Pab.Quant.Pred.Median = numeric(0),
+      Pab.Quant.Pred.LowerCI = numeric(0),
+      Pab.Quant.Pred.UpperCI = numeric(0),
+      stringsAsFactors = FALSE
     )
-  } else {
-    Padel <- get_padel(
-      cichem_list = chems,
-      descriptors = papp_padel_desc
-    )
-    Opera <- get_opera(
-      cichem_list = chems,
-      descriptors = papp_opera_desc
-    )
-    papp_df <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
+    return(list(output = empty, missing = NULL))
   }
 
-  # Calculate fraction_neutral from pKa if available
-  if (all(c("pKa_a_pred", "pKa_b_pred") %in% names(papp_df))) {
-    ion_list <- lapply(seq_len(nrow(papp_df)), function(i) {
-      httk::calc_ionization(
-        pH = 7.4,
-        pKa_Donor = papp_df[i, "pKa_a_pred"],
-        pKa_Accept = papp_df[i, "pKa_b_pred"]
-      )
-    })
+  # `papp_classmodopt` is a legacy caret::train object. Its internal
+  # `modelInfo$predict` closure was saved with `.GlobalEnv` as its enclosing
+  # environment and calls `predict()` unqualified, so R resolves that call
+  # starting in the CALLER's global environment. Any object named `predict`
+  # there -- a user variable, or another package's function assigned globally
+  # -- would be picked up instead of `stats::predict` and break the
+  # prediction. Re-parent the closure onto an environment that supplies the
+  # correct `predict` before its lookup can escape to the user's workspace.
+  # This mutates our local copy only; the packaged data object is untouched.
+  predict_env <- new.env(parent = globalenv())
+  predict_env$predict <- stats::predict
+  environment(papp_classmodopt$modelInfo$predict) <- predict_env
 
-    if (length(ion_list) > 0) {
-      ion_names <- names(ion_list[[1]])
-      for (nm in ion_names) {
-        papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
-      }
-    }
-  }
-
-  # Restrict to only the columns required for the Papp model
-  papp_desc <- papp_df[, papp_opt_desc, drop = FALSE]
-
-  # Standardize descriptors using means/SDs from training data
-  for (this_col in papp_opt_desc) {
-    if (is.numeric(papp_train_msd[1, this_col])) {
-      papp_desc[, this_col] <-
-        (papp_desc[, this_col] -
-          papp_train_msd[1, this_col]) /
-        papp_train_msd[2, this_col]
-    }
-  }
-
-  # Assign NA values the mean (0 after standardization) for any missing descriptors:
-  papp_desc[is.na(papp_desc)] <- 0
-  # Set any infinite descriptor to 100 sd's (outside of DOA):
-  inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
-  for (col in inf_cols) {
-    inf_rows <- which(is.infinite(papp_desc[[col]]))
-    papp_desc[[col]][inf_rows] <- as.numeric(papp_train_msd[2, col]) * 100
-  }
-
-  pred <- stats::predict(papp_classmodopt, papp_desc)
+  # randomForest breaks an argmax tie between classes by drawing from the
+  # RNG, so an unseeded run can assign a different class to the same
+  # chemical. Seed as calc_clint() does, which is the only other
+  # classification forest in the package. Note this makes a given input
+  # frame reproducible, not a given chemical: the draw a row receives
+  # depends on how many rows precede it, so a tied chemical can still land
+  # differently in a different batch. That is why Papp parity is asserted on
+  # the vote matrix rather than the predicted class.
+  #
+  # Call caret's method directly rather than relying on S3 dispatch through
+  # stats::predict(). It is the same function, but naming it makes the caret
+  # dependency visible to `R CMD check`, which otherwise reports caret as
+  # declared in Imports but never used.
+  pred <- with_seed(1255, caret::predict.train(papp_classmodopt, papp_desc))
 
   ad <- calc_roy_ad(
     data = papp_desc,
@@ -183,7 +120,7 @@ calc_papp <- function(
   )
 
   papp_pred <- data.frame(
-    MoleculeID = papp_df$MoleculeI,
+    MoleculeID = descriptors[["MoleculeID"]],
     Pab.Class.Pred = pred,
     Pab.Pred.AD = ad$Outlier,
     stringsAsFactors = FALSE
@@ -208,4 +145,94 @@ calc_papp <- function(
   )
 
   return(list(output = papp_pred, missing = NULL))
+}
+
+#' Prepare the standardized descriptor matrix for the Papp model
+#'
+#' Subsets `descriptors` to the Papp model's columns, derives
+#' `fraction_neutral` from pKa via [httk::calc_ionization()], standardizes
+#' against the training means/SDs, mean-imputes missing values, and clamps
+#' infinities to +/-100 SDs.
+#'
+#' Exposed separately from [calc_papp()] so the random forest vote matrix can
+#' be asserted directly. Votes are deterministic, whereas the predicted class
+#' is not when two classes tie.
+#'
+#' @param descriptors A data frame keyed on `MoleculeID`.
+#' @return A data frame of standardized model inputs, one row per input row.
+#' @noRd
+prepare_papp_descriptors <- function(descriptors) {
+  papp_opt_desc <- httkqsprs::papp_opt_desc
+  papp_train_msd <- httkqsprs::papp_train_msd
+
+  # fraction_neutral is calculated from OPERA pKa by httk but is neither an
+  # OPERA nor a PaDEL descriptor, so it is never retrieved.
+  needs <- required_descriptors("papp")
+  papp_df <- subset_descriptors(
+    descriptors,
+    c(needs$opera, needs$padel)
+  )
+
+  # Calculate fraction_neutral from pKa. `required_descriptors("papp")`
+  # includes both pKa columns, so subset_descriptors() above has already
+  # errored if either is absent -- this is unconditional by construction.
+  ion_list <- lapply(seq_len(nrow(papp_df)), function(i) {
+    httk::calc_ionization(
+      pH = 7.4,
+      pKa_Donor = papp_df[i, "pKa_a_pred"],
+      pKa_Accept = papp_df[i, "pKa_b_pred"]
+    )
+  })
+
+  if (length(ion_list) > 0) {
+    ion_names <- names(ion_list[[1]])
+  } else {
+    # With zero input rows there is no first element to read names from.
+    # Probe `calc_ionization()` instead, because `fraction_neutral` is a
+    # required model descriptor: skipping this loop entirely would leave it
+    # absent and make the `papp_opt_desc` subset below fail with an opaque
+    # "undefined columns selected". `vapply()` over an empty list yields
+    # `numeric(0)`, so the frame stays zero-row.
+    ion_names <- names(
+      httk::calc_ionization(pH = 7.4, pKa_Donor = NA, pKa_Accept = NA)
+    )
+  }
+  for (nm in ion_names) {
+    papp_df[[nm]] <- vapply(ion_list, function(x) x[[nm]], numeric(1))
+  }
+
+  # Restrict to only the columns required for the Papp model
+  papp_desc <- papp_df[, papp_opt_desc, drop = FALSE]
+
+  # Standardize descriptors using means/SDs from training data
+  for (this_col in papp_opt_desc) {
+    if (is.numeric(papp_train_msd[1, this_col])) {
+      papp_desc[, this_col] <-
+        (papp_desc[, this_col] -
+          papp_train_msd[1, this_col]) /
+        papp_train_msd[2, this_col]
+    }
+  }
+
+  # Assign NA values the mean (0 after standardization) for any missing descriptors:
+  papp_desc[is.na(papp_desc)] <- 0
+  # Push any infinite descriptor to 100 SDs from the mean, keeping its sign.
+  #
+  # This clamp is required, not cosmetic: randomForest's compiled predictor
+  # rejects non-finite input outright ("NA/NaN/Inf in foreign function call"),
+  # and calc_roy_ad() below fails on it too, so an unclamped infinity aborts
+  # the prediction for every chemical in the frame, not just the affected one.
+  #
+  # `papp_desc` is already standardized here, so "100 SDs" is literally 100.
+  # Multiplying by the training SD again would re-introduce raw units and put
+  # each descriptor at a different distance from the mean. Preserving the sign
+  # keeps a -Inf at the low extreme; clamping it to a positive value would move
+  # the chemical to the opposite end of the model's range.
+  inf_cols <- which(sapply(papp_desc, function(x) any(is.infinite(x))))
+  for (col in inf_cols) {
+    inf_rows <- which(is.infinite(papp_desc[[col]]))
+    papp_desc[[col]][inf_rows] <- sign(papp_desc[[col]][inf_rows]) * 100
+  }
+
+  papp_desc
 }

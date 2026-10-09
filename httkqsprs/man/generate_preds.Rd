@@ -2,35 +2,26 @@
 % Please edit documentation in R/generate_preds.R
 \name{generate_preds}
 \alias{generate_preds}
-\title{Generate predictions for Clint, Fup, and optionally Papp}
+\title{Generate predictions for Clint, Fup, and Papp}
 \usage{
 generate_preds(
   Datalabel,
-  output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  chems = NULL,
   input.folder = getwd(),
   write.files = TRUE,
   output.folder = tempdir()
 )
 }
 \arguments{
-\item{Datalabel}{A character string used to label output files.}
-
-\item{output.path}{Optional output directory path. Defaults to \code{tempdir()}.}
+\item{Datalabel}{A character string used to label input and output files.}
 
 \item{Operaversion}{A character string specifying the OPERA version.}
 
-\item{operapostfix}{Postfix of the OPERA descriptor file when reading from
-CSV.}
+\item{operapostfix}{Postfix of the OPERA descriptor file.}
 
-\item{padelpostfix}{Postfix of the PaDEL descriptor file when reading from
-CSV.}
-
-\item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are queried via database helper functions.}
+\item{padelpostfix}{Postfix of the PaDEL descriptor file.}
 
 \item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
 Defaults to \code{\link{getwd}}.}
@@ -39,12 +30,6 @@ Defaults to \code{\link{getwd}}.}
 
 \item{output.folder}{The folder where the output file is placed.
 Defaults to \code{\link{tempdir}}.}
-
-\item{papp_model}{Optional fitted Caco-2 Papp classification model. If
-\code{NULL}, \code{generate_preds()} attempts to use \code{classmodopt} if available.}
-
-\item{papp_model_label}{Character scalar indicating which \code{qspr.summary}
-column to use for class-to-quantitative mapping in \code{\link[=calc_papp]{calc_papp()}}.}
 }
 \value{
 A named list with:
@@ -55,21 +40,19 @@ incomplete cases).}
 \item{Fup}{Named list returned by \code{\link[=calc_fup]{calc_fup()}}, with elements
 \verb{$output} (complete-case predictions) and \verb{$missing} (excluded
 incomplete cases).}
-\item{Papp}{Named list returned by \code{\link[=calc_papp]{calc_papp()}} when available
-(otherwise \code{NULL}), with elements \verb{$output} (predictions) and
-\verb{$missing} (\code{NULL}, as Papp uses imputation instead of exclusion).}
+\item{Papp}{Named list returned by \code{\link[=calc_papp]{calc_papp()}}, with elements
+\verb{$output} (predictions) and \verb{$missing} (always \code{NULL}, as Papp uses
+imputation instead of exclusion).}
 }
 }
 \description{
-This function orchestrates Clint, Fup, and optional Papp prediction
-workflows. Descriptor retrieval is delegated to \code{\link[=calc_clint]{calc_clint()}},
-\code{\link[=calc_fup]{calc_fup()}}, and \code{\link[=calc_papp]{calc_papp()}} so each workflow requests only the
-descriptors it needs.
+Reads the OPERA and PaDEL descriptor CSVs once, then hands the resulting
+descriptor frame to \code{\link[=calc_clint]{calc_clint()}}, \code{\link[=calc_fup]{calc_fup()}}, and \code{\link[=calc_papp]{calc_papp()}}.
 }
 \references{
 Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput
 toxicokinetic models using open-source descriptors."
-\emph{Environmental Science \& Technology} 55.9 (2021): 6505-6517.
+\emph{Environmental Science & Technology} 55.9 (2021): 6505-6517.
 
 Mansouri, Kamel, et al. "OPERA models for predicting physicochemical
 properties and environmental fate endpoints."
