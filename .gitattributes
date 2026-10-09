@@ -1,0 +1,14 @@
+# Normalize line endings so the index is always LF, regardless of each
+# contributor's core.autocrlf setting. Without this the repo's LF-clean index
+# is a property of the current contributors' local git config rather than of
+# the repository itself.
+* text=auto eol=lf
+
+# Binary payloads must never be line-ending converted.
+*.RData binary
+*.rda   binary
+*.rds   binary
+*.tar.gz binary
+*.png   binary
+*.jpg   binary
+*.pdf   binary

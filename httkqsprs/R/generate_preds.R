@@ -26,26 +26,15 @@
 
 # These sets are included in the file "CombinedDescriptors_DED050621.RData", included in this folder.
 
-#' Generate predictions for Clint, Fup, and optionally Papp
+#' Generate predictions for Clint, Fup, and Papp
 #'
-#' This function orchestrates Clint, Fup, and optional Papp prediction
-#' workflows. Descriptor retrieval is delegated to [calc_clint()],
-#' [calc_fup()], and [calc_papp()] so each workflow requests only the
-#' descriptors it needs.
+#' Reads the OPERA and PaDEL descriptor CSVs once, then hands the resulting
+#' descriptor frame to [calc_clint()], [calc_fup()], and [calc_papp()].
 #'
-#' @param Datalabel A character string used to label output files.
-#' @param output.path Optional output directory path. Defaults to `tempdir()`.
+#' @param Datalabel A character string used to label input and output files.
 #' @param Operaversion A character string specifying the OPERA version.
-#' @param operapostfix Postfix of the OPERA descriptor file when reading from
-#'   CSV.
-#' @param padelpostfix Postfix of the PaDEL descriptor file when reading from
-#'   CSV.
-#' @param chems Optional character vector of CICHEM identifiers. If provided,
-#'   descriptors are queried via database helper functions.
-#' @param papp_model Optional fitted Caco-2 Papp classification model. If
-#'   `NULL`, `generate_preds()` attempts to use `classmodopt` if available.
-#' @param papp_model_label Character scalar indicating which `qspr.summary`
-#'   column to use for class-to-quantitative mapping in [calc_papp()].
+#' @param operapostfix Postfix of the OPERA descriptor file.
+#' @param padelpostfix Postfix of the PaDEL descriptor file.
 #' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
 #'   Defaults to \code{\link{getwd}}.
 #' @param write.files If true, writes output files to `output.folder`. Defaults to true.
@@ -60,15 +49,15 @@
 #'   \item{Fup}{Named list returned by [calc_fup()], with elements
 #'     `$output` (complete-case predictions) and `$missing` (excluded
 #'     incomplete cases).}
-#'   \item{Papp}{Named list returned by [calc_papp()] when available
-#'     (otherwise `NULL`), with elements `$output` (predictions) and
-#'     `$missing` (`NULL`, as Papp uses imputation instead of exclusion).}
+#'   \item{Papp}{Named list returned by [calc_papp()], with elements
+#'     `$output` (predictions) and `$missing` (always `NULL`, as Papp uses
+#'     imputation instead of exclusion).}
 #' }
 #'
 #' @references
 #' Dawson, Daniel E., et al. "Designing QSARs for parameters of high-throughput
 #' toxicokinetic models using open-source descriptors."
-#' \emph{Environmental Science \& Technology} 55.9 (2021): 6505-6517.
+#' \emph{Environmental Science & Technology} 55.9 (2021): 6505-6517.
 #'
 #' Mansouri, Kamel, et al. "OPERA models for predicting physicochemical
 #' properties and environmental fate endpoints."
@@ -82,113 +71,93 @@
 #'
 #' @import randomForest
 #' @import stringr
-#' @import DBI
-#' @import RPostgres
+#' @importFrom utils write.csv
 #' @export generate_preds
 generate_preds <- function(
   Datalabel,
-  output.path = NULL,
   Operaversion = "2.9.2",
   operapostfix = "-smi_OPERA2.9Pred.csv",
   padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  chems = NULL,
   input.folder = getwd(),
   write.files = TRUE,
   output.folder = tempdir()
 ) {
-  if (is.null(output.path)) {
-    output.path <- tempdir()
-  }
-
-  clint <- calc_clint(
+  descriptors <- read_descriptor_csvs(
     datalabel = Datalabel,
-    chems = chems,
+    input.folder = input.folder,
     operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    input.folder = input.folder
+    padelpostfix = padelpostfix
   )
 
-  fup <- calc_fup(
-    datalabel = Datalabel,
-    chems = chems,
-    operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    input.folder = input.folder
-  )
+  clint <- calc_clint(descriptors)
 
-  papp <- calc_papp(
-    datalabel = Datalabel,
-    chems = chems,
-    operapostfix = operapostfix,
-    padelpostfix = padelpostfix,
-    input.folder = input.folder
-  )
+  fup <- calc_fup(descriptors)
+
+  papp <- calc_papp(descriptors)
 
   if (write.files) {
     cat("Outputs written to", output.folder, "\n")
     # write clint outputs
     write.csv(
       clint$missing,
-      file = paste0(
+      file = file.path(
         output.folder,
-        "Incomplete_Clint_predictions_",
-        Datalabel,
-        ".csv"
+        paste0("Incomplete_Clint_predictions_", Datalabel, ".csv")
       )
     )
     write.csv(
       clint$output,
-      file = paste0(
+      file = file.path(
         output.folder,
-        "Novel_clint_predictions_with_AD_",
-        Datalabel,
-        "_descs_from_OPERA",
-        Operaversion,
-        ".csv"
+        paste0(
+          "Novel_clint_predictions_with_AD_",
+          Datalabel,
+          "_descs_from_OPERA",
+          Operaversion,
+          ".csv"
+        )
       )
     )
 
     # write fup outputs
     write.csv(
       fup$missing,
-      file = paste0(
+      file = file.path(
         output.folder,
-        "Incomplete_fup_predictions_",
-        Datalabel,
-        ".csv"
+        paste0("Incomplete_fup_predictions_", Datalabel, ".csv")
       )
     )
     write.csv(
       fup$output,
-      file = paste0(
+      file = file.path(
         output.folder,
-        "Novel_fup_predictions_with_AD_",
-        Datalabel,
-        "_descs_from_OPERA",
-        Operaversion,
-        ".csv"
+        paste0(
+          "Novel_fup_predictions_with_AD_",
+          Datalabel,
+          "_descs_from_OPERA",
+          Operaversion,
+          ".csv"
+        )
       )
     )
 
     # write papp outputs
+    #
+    # There is deliberately no "Incomplete_papp" file: `calc_papp()` mean-
+    # imputes missing descriptors rather than excluding cases, so `$missing`
+    # is always NULL and `write.csv(NULL)` produced a file whose entire
+    # contents were `""`.
     write.csv(
       papp$output,
-      file = paste0(
+      file = file.path(
         output.folder,
-        "Novel_papp_predictions_with_AD_",
-        Datalabel,
-        "_descs_from_OPERA",
-        Operaversion,
-        ".csv"
-      )
-    )
-    write.csv(
-      papp$missing,
-      file = paste0(
-        output.folder,
-        "Incomplete_papp_predictions_",
-        Datalabel,
-        ".csv"
+        paste0(
+          "Novel_papp_predictions_with_AD_",
+          Datalabel,
+          "_descs_from_OPERA",
+          Operaversion,
+          ".csv"
+        )
       )
     )
   }

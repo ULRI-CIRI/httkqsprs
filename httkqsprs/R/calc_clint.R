@@ -1,20 +1,12 @@
 #' Calculate Clint predictions and Roy AD metrics
 #'
-#' Retrieves only the descriptors required by the Clint model, standardizes
-#' descriptor inputs for the Clint random forest classifier, predicts Clint
-#' bins, maps bins to median and SD clearance values from the training data,
-#' and computes Roy et al. applicability-domain metrics.
+#' Standardizes descriptor inputs for the Clint random forest classifier,
+#' predicts Clint bins, maps bins to median and SD clearance values from the
+#' training data, and computes Roy et al. applicability-domain metrics.
 #'
-#' @param datalabel Character scalar used in output filenames.
-#' @param chems Optional character vector of CICHEM identifiers. If provided,
-#'   descriptors are retrieved from the database using [get_padel()] and
-#'   [get_opera()].
-#' @param operapostfix Character postfix of the OPERA descriptor CSV when
-#'   `chems` is `NULL`.
-#' @param padelpostfix Character postfix of the PaDEL descriptor CSV when
-#'   `chems` is `NULL`.
-#' @param input.folder The folder containing the input files (OPERA and PaDEL descriptors).
-#'   Defaults to \code{\link{getwd}}.
+#' @param descriptors A data frame keyed on `MoleculeID` containing at least
+#'   the columns named by `required_descriptors("clint")`. Extra columns are
+#'   ignored.
 #'
 #' @return A named list with two elements:
 #' \describe{
@@ -29,8 +21,7 @@
 #' Workflow:
 #' \enumerate{
 #'   \item Determine Clint-required descriptor names from `ClintClass3Mod`.
-#'   \item Retrieve only those OPERA and PaDEL descriptors from CSV files or
-#'   database helpers.
+#'   \item Subset `descriptors` to only those OPERA and PaDEL columns.
 #'   \item Standardize descriptors using `clint.msd` means/SDs.
 #'   \item Restrict to `ClintClass3Mod` predictors.
 #'   \item Remove incomplete rows (returned in `$missing`).
@@ -40,81 +31,36 @@
 #'   \item Compute Roy AD metrics with [calc_roy_ad()].
 #' }
 #'
+#' A zero-row `descriptors` frame returns zero-row `output` and `missing`
+#' frames with the full column set rather than erroring.
+#'
 #' @author Daniel E. Dawson and John Wambaugh
 #'
 #' @references
 #' Dawson, Daniel E., et al. (2021). Designing QSARs for parameters of
 #' high-throughput toxicokinetic models using open-source descriptors.
-#' \emph{Environmental Science \& Technology}, 55(9), 6505-6517.
+#' \emph{Environmental Science & Technology}, 55(9), 6505-6517.
 #'
+#' @importFrom stats complete.cases
 #' @export calc_clint
-calc_clint <- function(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-) {
+calc_clint <- function(descriptors) {
   # Load these from package in case user hasn't loaded whole package:
-  Descriptors <- httkqsprs::Descriptors
   ClintClass3Mod <- httkqsprs::ClintClass3Mod
   clint.msd <- httkqsprs::clint.msd
   tmeanagtable <- httkqsprs::tmeanagtable
   tsdagtable <- httkqsprs::tsdagtable
 
-  opera_desc_all <- paste0(Descriptors$Opera, "_pred")
+  needs <- required_descriptors("clint")
+  clint_opera_desc <- needs$opera
+  clint_padel_desc <- needs$padel
   clintmodvars <- row.names(importance(ClintClass3Mod))
 
-  clint_opera_desc <- intersect(opera_desc_all, clintmodvars)
-  clint_padel_desc <- intersect(Descriptors$Padel, clintmodvars)
-
-  if (is.null(chems)) {
-    NEWOPERA <- paste0(input.folder, "/", datalabel, operapostfix)
-    NEWPADEL <- paste0(input.folder, "/", datalabel, padelpostfix)
-
-    Opera <- read.csv(NEWOPERA)
-    Padel <- read.csv(NEWPADEL)
-
-    missing_opera <- setdiff(clint_opera_desc, names(Opera))
-    if (length(missing_opera) > 0) {
-      for (nm in missing_opera) {
-        Opera[[nm]] <- NA_real_
-      }
-    }
-
-    missing_padel <- setdiff(clint_padel_desc, names(Padel))
-    if (length(missing_padel) > 0) {
-      for (nm in missing_padel) {
-        Padel[[nm]] <- NA_real_
-      }
-    }
-
-    Opera <- Opera[,
-      c(1, which(names(Opera) %in% clint_opera_desc)),
-      drop = FALSE
-    ]
-    Padel <- Padel[,
-      c(1, which(names(Padel) %in% clint_padel_desc)),
-      drop = FALSE
-    ]
-    chemlist <- merge(
-      Opera,
-      Padel,
-      by.x = "MoleculeID",
-      by.y = "Name",
-      all.x = TRUE
-    )
-  } else {
-    Padel <- get_padel(
-      cichem_list = chems,
-      descriptors = clint_padel_desc
-    )
-    Opera <- get_opera(
-      cichem_list = chems,
-      descriptors = clint_opera_desc
-    )
-    chemlist <- merge(Padel, Opera, by = "MoleculeID", all = TRUE)
-  }
+  # Subset to this endpoint's columns before any further processing, so a
+  # wide union frame behaves identically to a per-endpoint frame.
+  chemlist <- subset_descriptors(
+    descriptors,
+    c(clint_padel_desc, clint_opera_desc)
+  )
 
   # Standardize descriptors using means/SDs from training data
   msd <- clint.msd
@@ -141,8 +87,34 @@ calc_clint <- function(
   chemlistsc_Clint_narm <- chemlistsc_Clint[which(ClintComplete == TRUE), ]
   IncompleteClint <- chemlistsc[which(ClintComplete == FALSE), ]
 
-  set.seed(1255)
-  chemlistpredictClint <- stats::predict(ClintClass3Mod, chemlistsc_Clint_narm)
+  # randomForest's predict() errors on zero-row newdata, so short-circuit --
+  # but still build the full column set. An empty result has to be a drop-in
+  # for a populated one, or generate_preds() writes a CSV whose header row
+  # differs from a normal run.
+  if (nrow(chemlistsc_Clint_narm) == 0) {
+    chemlistsc_Clint_narm$ClintPredictBin <- factor(
+      character(0),
+      levels = ClintClass3Mod$classes
+    )
+    chemlistsc_Clint_narm$ClintPredictBin_MD <- numeric(0)
+    chemlistsc_Clint_narm$ClintPredictBin_SD <- numeric(0)
+    SIdf <- calc_roy_ad(
+      data = chemlistsc_Clint_narm,
+      model_vars = clintmodvars
+    )
+    return(list(
+      output = data.frame(chemlistsc_Clint_narm, SIdf),
+      missing = IncompleteClint
+    ))
+  }
+
+  # `ClintClass3Mod` is a classification forest, so randomForest draws from
+  # the RNG to break a tied class vote. Seed for reproducibility, but restore
+  # the caller's RNG stream afterwards rather than leaving our seed in place.
+  chemlistpredictClint <- with_seed(
+    1255,
+    stats::predict(ClintClass3Mod, chemlistsc_Clint_narm)
+  )
   chemlistsc_Clint_narm$ClintPredictBin <- chemlistpredictClint
 
   chemlistsc_Clint_narm$ClintPredictBin_MD <- ifelse(

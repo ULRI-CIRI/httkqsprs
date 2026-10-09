@@ -4,29 +4,12 @@
 \alias{calc_clint}
 \title{Calculate Clint predictions and Roy AD metrics}
 \usage{
-calc_clint(
-  datalabel,
-  chems = NULL,
-  operapostfix = "-smi_OPERA2.9Pred.csv",
-  padelpostfix = "_QSAR-ready_smi_PadelDesc.csv",
-  input.folder = getwd()
-)
+calc_clint(descriptors)
 }
 \arguments{
-\item{datalabel}{Character scalar used in output filenames.}
-
-\item{chems}{Optional character vector of CICHEM identifiers. If provided,
-descriptors are retrieved from the database using \code{\link[=get_padel]{get_padel()}} and
-\code{\link[=get_opera]{get_opera()}}.}
-
-\item{operapostfix}{Character postfix of the OPERA descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{padelpostfix}{Character postfix of the PaDEL descriptor CSV when
-\code{chems} is \code{NULL}.}
-
-\item{input.folder}{The folder containing the input files (OPERA and PaDEL descriptors).
-Defaults to \code{\link{getwd}}.}
+\item{descriptors}{A data frame keyed on \code{MoleculeID} containing at least
+the columns named by \code{required_descriptors("clint")}. Extra columns are
+ignored.}
 }
 \value{
 A named list with two elements:
@@ -39,17 +22,15 @@ descriptor data.}
 }
 }
 \description{
-Retrieves only the descriptors required by the Clint model, standardizes
-descriptor inputs for the Clint random forest classifier, predicts Clint
-bins, maps bins to median and SD clearance values from the training data,
-and computes Roy et al. applicability-domain metrics.
+Standardizes descriptor inputs for the Clint random forest classifier,
+predicts Clint bins, maps bins to median and SD clearance values from the
+training data, and computes Roy et al. applicability-domain metrics.
 }
 \details{
 Workflow:
 \enumerate{
 \item Determine Clint-required descriptor names from \code{ClintClass3Mod}.
-\item Retrieve only those OPERA and PaDEL descriptors from CSV files or
-database helpers.
+\item Subset \code{descriptors} to only those OPERA and PaDEL columns.
 \item Standardize descriptors using \code{clint.msd} means/SDs.
 \item Restrict to \code{ClintClass3Mod} predictors.
 \item Remove incomplete rows (returned in \verb{$missing}).
@@ -58,11 +39,14 @@ database helpers.
 \code{tsdagtable}.
 \item Compute Roy AD metrics with \code{\link[=calc_roy_ad]{calc_roy_ad()}}.
 }
+
+A zero-row \code{descriptors} frame returns zero-row \code{output} and \code{missing}
+frames with the full column set rather than erroring.
 }
 \references{
 Dawson, Daniel E., et al. (2021). Designing QSARs for parameters of
 high-throughput toxicokinetic models using open-source descriptors.
-\emph{Environmental Science \& Technology}, 55(9), 6505-6517.
+\emph{Environmental Science & Technology}, 55(9), 6505-6517.
 }
 \author{
 Daniel E. Dawson and John Wambaugh
