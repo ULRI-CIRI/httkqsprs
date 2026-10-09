@@ -31,6 +31,7 @@ Description: The Dawson et al. (2021) <doi:10.1021/acs.est.0c06117>
               models were evaluated as part of Wambaugh et al. (2026) <doi:10.1016/j.tiv.2025.106150>
               Also included is the Honda et al. (2025) <doi:10.1016/j.tiv.2025.106150> QSPR model
               for predicting Caco-2 membrane permeability (Papp in units of cm/s).
+License: MIT + file LICENSE
 LazyData: true
 LazyDataCompression: xz
 Encoding: UTF-8
