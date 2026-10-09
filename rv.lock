@@ -6,7 +6,7 @@ r_version = "4.5"
 [[packages]]
 name = "DBI"
 version = "1.3.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
@@ -36,7 +36,7 @@ dependencies = [
 [[packages]]
 name = "ModelMetrics"
 version = "1.2.2.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "Rcpp",
@@ -46,28 +46,28 @@ dependencies = [
 [[packages]]
 name = "R6"
 version = "2.6.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "RColorBrewer"
 version = "1.1-3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "Rcpp"
 version = "1.1.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "RcppArmadillo"
 version = "15.6.0-1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 1.1.1)" },
@@ -76,7 +76,7 @@ dependencies = [
 [[packages]]
 name = "Rdpack"
 version = "2.6.6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "rbibutils", requirement = "(> 2.4)" },
@@ -85,21 +85,21 @@ dependencies = [
 [[packages]]
 name = "S7"
 version = "0.2.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "SQUAREM"
 version = "2026.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "askpass"
 version = "1.2.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "sys", requirement = "(>= 2.1)" },
@@ -108,28 +108,28 @@ dependencies = [
 [[packages]]
 name = "base64enc"
 version = "0.1-6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "brew"
 version = "1.0-10"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "brio"
 version = "1.1.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "bslib"
 version = "0.12.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "base64enc",
@@ -148,7 +148,7 @@ dependencies = [
 [[packages]]
 name = "cachem"
 version = "1.1.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "rlang",
@@ -158,7 +158,7 @@ dependencies = [
 [[packages]]
 name = "callr"
 version = "3.8.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "otel", requirement = "(>= 0.2.0)" },
@@ -169,7 +169,7 @@ dependencies = [
 [[packages]]
 name = "caret"
 version = "7.0-1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "ggplot2",
@@ -197,21 +197,21 @@ dependencies = [
 [[packages]]
 name = "cli"
 version = "3.6.6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "clipr"
 version = "0.8.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "clock"
 version = "0.7.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.6.4)" },
@@ -232,28 +232,28 @@ dependencies = []
 [[packages]]
 name = "commonmark"
 version = "2.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "cpp11"
 version = "0.5.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "crayon"
 version = "1.5.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "credentials"
 version = "2.0.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "openssl", requirement = "(>= 1.3)" },
@@ -266,28 +266,28 @@ dependencies = [
 [[packages]]
 name = "curl"
 version = "8.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "data.table"
 version = "1.18.6.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "deSolve"
 version = "1.42"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "desc"
 version = "1.4.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -297,7 +297,7 @@ dependencies = [
 [[packages]]
 name = "devtools"
 version = "2.5.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "usethis", requirement = "(>= 3.2.1)" },
@@ -326,7 +326,7 @@ dependencies = [
 [[packages]]
 name = "diagram"
 version = "1.6.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "shape",
@@ -335,7 +335,7 @@ dependencies = [
 [[packages]]
 name = "diffobj"
 version = "0.3.9"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "crayon", requirement = "(>= 1.3.2)" },
@@ -344,14 +344,14 @@ dependencies = [
 [[packages]]
 name = "digest"
 version = "0.6.39"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "downlit"
 version = "0.4.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "brio",
@@ -369,7 +369,7 @@ dependencies = [
 [[packages]]
 name = "dplyr"
 version = "1.2.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.6.2)" },
@@ -388,7 +388,7 @@ dependencies = [
 [[packages]]
 name = "e1071"
 version = "1.7-17"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "class",
@@ -398,7 +398,7 @@ dependencies = [
 [[packages]]
 name = "ellipsis"
 version = "0.3.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "rlang", requirement = "(>= 1.1.7)" },
@@ -407,14 +407,14 @@ dependencies = [
 [[packages]]
 name = "evaluate"
 version = "1.0.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "expm"
 version = "1.0-1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "Matrix",
@@ -423,28 +423,28 @@ dependencies = [
 [[packages]]
 name = "fansi"
 version = "1.0.7"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "farver"
 version = "2.1.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "fastmap"
 version = "1.2.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "fontawesome"
 version = "0.5.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "rlang", requirement = "(>= 1.0.6)" },
@@ -454,7 +454,7 @@ dependencies = [
 [[packages]]
 name = "foreach"
 version = "1.5.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "codetools",
@@ -464,14 +464,14 @@ dependencies = [
 [[packages]]
 name = "fs"
 version = "2.1.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "future"
 version = "1.76.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "digest",
@@ -483,7 +483,7 @@ dependencies = [
 [[packages]]
 name = "future.apply"
 version = "1.20.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "future", requirement = "(>= 1.49.0)" },
@@ -493,14 +493,14 @@ dependencies = [
 [[packages]]
 name = "generics"
 version = "0.1.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "gert"
 version = "2.4.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "askpass",
@@ -514,7 +514,7 @@ dependencies = [
 [[packages]]
 name = "ggplot2"
 version = "4.0.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -531,7 +531,7 @@ dependencies = [
 [[packages]]
 name = "gh"
 version = "1.6.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.0.1)" },
@@ -547,14 +547,14 @@ dependencies = [
 [[packages]]
 name = "gitcreds"
 version = "0.1.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "globals"
 version = "0.19.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "codetools",
@@ -563,21 +563,21 @@ dependencies = [
 [[packages]]
 name = "glue"
 version = "1.8.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "gower"
 version = "1.0.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "gtable"
 version = "0.3.6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -589,7 +589,7 @@ dependencies = [
 [[packages]]
 name = "hardhat"
 version = "1.4.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.6.0)" },
@@ -603,7 +603,7 @@ dependencies = [
 [[packages]]
 name = "highr"
 version = "0.12"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "xfun", requirement = "(>= 0.18)" },
@@ -612,7 +612,7 @@ dependencies = [
 [[packages]]
 name = "htmltools"
 version = "0.5.9"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "base64enc",
@@ -624,7 +624,7 @@ dependencies = [
 [[packages]]
 name = "htmlwidgets"
 version = "1.6.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "htmltools", requirement = "(>= 0.5.7)" },
@@ -637,7 +637,7 @@ dependencies = [
 [[packages]]
 name = "httk"
 version = "2.7.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "deSolve",
@@ -668,7 +668,7 @@ dependencies = [
 [[packages]]
 name = "httpuv"
 version = "1.6.17"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "later", requirement = "(>= 0.8.0)" },
@@ -680,7 +680,7 @@ dependencies = [
 [[packages]]
 name = "httr2"
 version = "1.3.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.0.0)" },
@@ -698,14 +698,14 @@ dependencies = [
 [[packages]]
 name = "ini"
 version = "0.3.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "ipred"
 version = "0.9-16"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "rpart", requirement = "(>= 3.1-8)" },
@@ -719,7 +719,7 @@ dependencies = [
 [[packages]]
 name = "isoband"
 version = "0.3.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -730,14 +730,14 @@ dependencies = [
 [[packages]]
 name = "iterators"
 version = "1.0.14"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "jquerylib"
 version = "0.1.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "htmltools",
@@ -746,14 +746,14 @@ dependencies = [
 [[packages]]
 name = "jsonlite"
 version = "2.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "knitr"
 version = "1.52"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "evaluate", requirement = "(>= 0.15)" },
@@ -765,14 +765,14 @@ dependencies = [
 [[packages]]
 name = "labeling"
 version = "0.4.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "later"
 version = "1.4.8"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 1.0.10)" },
@@ -789,7 +789,7 @@ dependencies = []
 [[packages]]
 name = "lava"
 version = "1.9.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -803,7 +803,7 @@ dependencies = [
 [[packages]]
 name = "lifecycle"
 version = "1.0.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.4.0)" },
@@ -813,14 +813,14 @@ dependencies = [
 [[packages]]
 name = "listenv"
 version = "1.1.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "lubridate"
 version = "1.9.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "generics",
@@ -830,14 +830,14 @@ dependencies = [
 [[packages]]
 name = "magrittr"
 version = "2.0.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "memoise"
 version = "2.0.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "rlang", requirement = "(>= 0.4.10)" },
@@ -847,14 +847,14 @@ dependencies = [
 [[packages]]
 name = "mime"
 version = "0.13"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "miniUI"
 version = "0.1.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "shiny", requirement = "(>= 0.13)" },
@@ -864,7 +864,7 @@ dependencies = [
 [[packages]]
 name = "minqa"
 version = "1.2.8"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 0.9.10)" },
@@ -873,7 +873,7 @@ dependencies = [
 [[packages]]
 name = "mitools"
 version = "2.7"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "DBI",
@@ -882,7 +882,7 @@ dependencies = [
 [[packages]]
 name = "msm"
 version = "1.8.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "survival",
@@ -895,7 +895,7 @@ dependencies = [
 [[packages]]
 name = "mvtnorm"
 version = "1.4-2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
@@ -918,14 +918,14 @@ dependencies = []
 [[packages]]
 name = "numDeriv"
 version = "2016.8-1.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "openssl"
 version = "2.4.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "askpass",
@@ -934,14 +934,14 @@ dependencies = [
 [[packages]]
 name = "otel"
 version = "0.2.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "pROC"
 version = "1.19.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 0.11.1)" },
@@ -950,21 +950,21 @@ dependencies = [
 [[packages]]
 name = "pak"
 version = "0.11.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "parallelly"
 version = "1.48.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "pillar"
 version = "1.11.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 2.3.0)" },
@@ -978,7 +978,7 @@ dependencies = [
 [[packages]]
 name = "pkgbuild"
 version = "1.4.8"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "callr", requirement = "(>= 3.2.0)" },
@@ -991,14 +991,14 @@ dependencies = [
 [[packages]]
 name = "pkgconfig"
 version = "2.0.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "pkgdown"
 version = "2.2.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "bslib", requirement = "(>= 0.5.1)" },
@@ -1026,7 +1026,7 @@ dependencies = [
 [[packages]]
 name = "pkgload"
 version = "1.5.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.3.0)" },
@@ -1043,7 +1043,7 @@ dependencies = [
 [[packages]]
 name = "plyr"
 version = "1.8.9"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 0.11.0)" },
@@ -1052,21 +1052,21 @@ dependencies = [
 [[packages]]
 name = "praise"
 version = "1.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "prettyunits"
 version = "1.2.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "processx"
 version = "3.9.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "ps", requirement = "(>= 1.9.3)" },
@@ -1076,7 +1076,7 @@ dependencies = [
 [[packages]]
 name = "prodlim"
 version = "2026.03.11"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "Rcpp", requirement = "(>= 0.11.5)" },
@@ -1093,7 +1093,7 @@ dependencies = [
 [[packages]]
 name = "profvis"
 version = "0.4.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "htmlwidgets", requirement = "(>= 0.3.2)" },
@@ -1104,7 +1104,7 @@ dependencies = [
 [[packages]]
 name = "progressr"
 version = "1.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "digest",
@@ -1113,7 +1113,7 @@ dependencies = [
 [[packages]]
 name = "promises"
 version = "1.5.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "fastmap", requirement = "(>= 1.1.0)" },
@@ -1128,21 +1128,21 @@ dependencies = [
 [[packages]]
 name = "proxy"
 version = "0.4-29"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "ps"
 version = "1.9.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "purrr"
 version = "1.2.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.6.1)" },
@@ -1155,7 +1155,7 @@ dependencies = [
 [[packages]]
 name = "ragg"
 version = "1.5.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "systemfonts", requirement = "(>= 1.0.3)" },
@@ -1165,28 +1165,28 @@ dependencies = [
 [[packages]]
 name = "randomForest"
 version = "4.7-1.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rappdirs"
 version = "0.3.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rbibutils"
 version = "2.4.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rcmdcheck"
 version = "1.4.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "callr", requirement = "(>= 3.1.1.9000)" },
@@ -1206,14 +1206,14 @@ dependencies = [
 [[packages]]
 name = "rdtools"
 version = "0.1.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "recipes"
 version = "1.4.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "dplyr", requirement = "(>= 1.1.0)" },
@@ -1242,7 +1242,7 @@ dependencies = [
 [[packages]]
 name = "reshape2"
 version = "1.4.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "plyr", requirement = "(>= 1.8.1)" },
@@ -1253,14 +1253,14 @@ dependencies = [
 [[packages]]
 name = "rlang"
 version = "1.3.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rmarkdown"
 version = "2.32"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "bslib", requirement = "(>= 0.2.5.1)" },
@@ -1277,8 +1277,8 @@ dependencies = [
 
 [[packages]]
 name = "roxygen2"
-version = "8.1.0"
-source = { repository = "https://cran.r-project.org/" }
+version = "8.1.1"
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "brew",
@@ -1306,21 +1306,21 @@ dependencies = []
 [[packages]]
 name = "rprojroot"
 version = "2.1.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rstudioapi"
 version = "0.19.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "rversions"
 version = "3.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "curl",
@@ -1329,7 +1329,7 @@ dependencies = [
 [[packages]]
 name = "sass"
 version = "0.4.10"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "fs", requirement = "(>= 1.2.4)" },
@@ -1342,7 +1342,7 @@ dependencies = [
 [[packages]]
 name = "scales"
 version = "1.4.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1359,7 +1359,7 @@ dependencies = [
 [[packages]]
 name = "sessioninfo"
 version = "1.2.4"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.1.0)" },
@@ -1368,14 +1368,14 @@ dependencies = [
 [[packages]]
 name = "shape"
 version = "1.4.6.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "shiny"
 version = "1.14.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "bslib", requirement = "(>= 0.6.0)" },
@@ -1403,14 +1403,14 @@ dependencies = [
 [[packages]]
 name = "sourcetools"
 version = "0.1.7-2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "sparsevctrs"
 version = "0.3.6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.4.0)" },
@@ -1421,14 +1421,14 @@ dependencies = [
 [[packages]]
 name = "stringi"
 version = "1.8.9"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "stringr"
 version = "1.6.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1443,7 +1443,7 @@ dependencies = [
 [[packages]]
 name = "survey"
 version = "4.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "Matrix",
@@ -1468,14 +1468,14 @@ dependencies = [
 [[packages]]
 name = "sys"
 version = "3.4.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "systemfonts"
 version = "1.3.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "base64enc",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[packages]]
 name = "testthat"
 version = "3.3.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "brio", requirement = "(>= 1.1.5)" },
@@ -1511,7 +1511,7 @@ dependencies = [
 [[packages]]
 name = "textshaping"
 version = "1.0.5"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "lifecycle",
@@ -1523,7 +1523,7 @@ dependencies = [
 [[packages]]
 name = "tibble"
 version = "3.3.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1538,7 +1538,7 @@ dependencies = [
 [[packages]]
 name = "tidyr"
 version = "1.3.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.4.1)" },
@@ -1558,7 +1558,7 @@ dependencies = [
 [[packages]]
 name = "tidyselect"
 version = "1.2.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.3.0)" },
@@ -1572,14 +1572,14 @@ dependencies = [
 [[packages]]
 name = "timeDate"
 version = "4052.112"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "timechange"
 version = "0.4.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cpp11", requirement = "(>= 0.2.7)" },
@@ -1588,7 +1588,7 @@ dependencies = [
 [[packages]]
 name = "tinytex"
 version = "0.61"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "xfun", requirement = "(>= 0.48)" },
@@ -1597,14 +1597,14 @@ dependencies = [
 [[packages]]
 name = "truncnorm"
 version = "1.0-9"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "tzdb"
 version = "0.5.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cpp11", requirement = "(>= 0.5.2)" },
@@ -1613,7 +1613,7 @@ dependencies = [
 [[packages]]
 name = "urlchecker"
 version = "2.0.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1626,7 +1626,7 @@ dependencies = [
 [[packages]]
 name = "usethis"
 version = "3.2.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.0.1)" },
@@ -1654,14 +1654,14 @@ dependencies = [
 [[packages]]
 name = "utf8"
 version = "1.2.6"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "vctrs"
 version = "0.7.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     { name = "cli", requirement = "(>= 3.4.0)" },
@@ -1673,14 +1673,14 @@ dependencies = [
 [[packages]]
 name = "viridisLite"
 version = "0.4.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "waldo"
 version = "0.6.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1692,28 +1692,28 @@ dependencies = [
 [[packages]]
 name = "whisker"
 version = "0.4.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "withr"
 version = "3.0.3"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "xfun"
 version = "0.61"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "xml2"
 version = "1.6.0"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
@@ -1723,7 +1723,7 @@ dependencies = [
 [[packages]]
 name = "xopen"
 version = "1.0.1"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "processx",
@@ -1732,21 +1732,21 @@ dependencies = [
 [[packages]]
 name = "xtable"
 version = "1.8-8"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "yaml"
 version = "2.3.12"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = []
 
 [[packages]]
 name = "zip"
 version = "3.0.2"
-source = { repository = "https://cran.r-project.org/" }
+source = { repository = "https://packagemanager.posit.co/cran/latest" }
 force_source = false
 dependencies = [
     "cli",
