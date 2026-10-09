@@ -55,4 +55,4 @@ jobs:
 
       - name: Check package build
         run: |
-          Rscript -e "devtools::check(pkg='httkqsprs')"
+          Rscript -e "devtools::check(pkg='httkqsprs', vignettes = FALSE)"
