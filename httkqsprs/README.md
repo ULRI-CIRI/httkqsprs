@@ -1,4 +1,4 @@
-# httkqpsrs
+# High Throughput Toxicokinetics Quantitative Structure-Property Relationship Models (httkqsprs)
 
 High throughput toxicokinetics ("HTTK") is the combination of in vitro TK data and generic mathematical models to predict absorption, distribution, metabolism, and excretion by the body, as decribed by [Pearce et al. (2017)](https://dx.doi.org/10.18637/jss.v079.i04) and [Breen et al. (2021)](https://dx.doi.org/10.1080/17425255.2021.1935867).
 

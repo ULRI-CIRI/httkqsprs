@@ -7,7 +7,7 @@ repositories = [
 ]
 
 dependencies = [
-    { name = "httkqsprs", path = "./httkqsprs", dependencies_only = true },
+    { name = "httkqsprs", path = "./httkqsprs" },
     "devtools",
     "tibble",
 ]

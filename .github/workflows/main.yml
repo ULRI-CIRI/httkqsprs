@@ -54,6 +54,6 @@ jobs:
           Rscript -e "devtools::test(pkg='httkqsprs')"
 
       - name: Check package build
-        continue-on-error: true
+        continue-on-error: true  # TODO - fix after we resolve warnings
         run: |
           Rscript -e "devtools::check(pkg='httkqsprs', vignettes = FALSE)"
