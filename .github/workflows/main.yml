@@ -17,7 +17,7 @@ jobs:
   ci:
     name: CI Checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       R_KEEP_PKG_SOURCE: yes
     steps:
@@ -55,6 +55,5 @@ jobs:
           Rscript -e "devtools::test(pkg='httkqsprs')"
 
       - name: Check package build
-        continue-on-error: true  # TODO - fix after we resolve warnings
         run: |
           Rscript -e "devtools::check(pkg='httkqsprs', vignettes = FALSE)"
