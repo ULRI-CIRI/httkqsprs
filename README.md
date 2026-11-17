@@ -29,7 +29,7 @@ The package lives in the `httkqsprs` subdirectory, so install it with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("ULRI-CIRI/dawson2021-httkqspr", subdir = "httkqsprs")
+remotes::install_github("ULRI-CIRI/httkqsprs", subdir = "httkqsprs")
 ```
 
 ### Setting up a development environment
