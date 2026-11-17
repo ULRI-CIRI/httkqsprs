@@ -4,7 +4,7 @@ This repository hosts [`httkqsprs`](httkqsprs), an R package implementing the ra
 
 ## Origin
 
-This fraction unbound in plasma (fup) and intrinsic heaptic clearance (Clint) QPSR models are from the (supplemental material)[https://github.com/HumanExposure/Dawson-et-al.-2021_Clint_fup_predictions] for Dawson et al. (2021), ["Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors"](https://doi.org/10.1021/acs.est.0c06117). The Caco-2 membrane permeability QSPR is from the [supplemental material](https://github.com/USEPA/CompTox-Expocast-Caco2) for Honda et al. (2025), ["Impact of Gut Permeability on Estimation of Oral Bioavailability for Chemicals in Commerce and the Environment"](https://doi.org/10.14573/altex.2403271).
+This fraction unbound in plasma (fup) and intrinsic heaptic clearance (Clint) QPSR models are from the [supplemental material](https://github.com/HumanExposure/Dawson-et-al.-2021_Clint_fup_predictions) for Dawson et al. (2021), ["Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors"](https://doi.org/10.1021/acs.est.0c06117). The Caco-2 membrane permeability QSPR is from the [supplemental material](https://github.com/USEPA/CompTox-Expocast-Caco2) for Honda et al. (2025), ["Impact of Gut Permeability on Estimation of Oral Bioavailability for Chemicals in Commerce and the Environment"](https://doi.org/10.14573/altex.2403271).
 
 ## The `httkqsprs` package
 
