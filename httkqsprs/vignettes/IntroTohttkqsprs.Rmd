@@ -64,7 +64,7 @@ The package is not on CRAN. Install it from the repository, pointing at the
 ```{r install_httkqsprs, eval = FALSE}
 # install.packages("remotes")
 remotes::install_github(
-  "ULRI-CIRI/dawson2021-httkqspr",
+  "ULRI-CIRI/httkqsprs",
   subdir = "httkqsprs"
 )
 ```
