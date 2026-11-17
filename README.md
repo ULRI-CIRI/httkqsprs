@@ -147,8 +147,8 @@ License: [MIT](https://en.wikipedia.org/wiki/MIT_License) <https://github.com/UL
 
 ## References
 
-Dawson, D., B. Ingle, K. Phillips, J. Nichols, J. Wambaugh, and R. Tornero-Velez. Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors. *Environmental Science & Technology* 55(9):6505-6517 (2021). <https://doi.org/10.1021/acs.est.0c06117>
+Daswson, Daniel E., Brandall L. Ingle, Katherine A. Phillips, John W. Nichols, John F. Wambaugh, and Rogelio Tornero-Velez. "Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors". *Environmental Science & Technology* 55(9):6505-6517 (2021). <https://doi.org/10.1021/acs.est.0c06117>
 
-Honda, Gregory S., Elaina M Kenyon , Sarah Davidson-Fritz, Roger Dinallo, Hisham El-Masri, Evgenia Korol-Bexell, Li Li, Derek Angus, Robert G Pearce, Risa R Sayre, Christopher Strock, Russell S Thomas, Barbara A Wetmore, and John F Wambaugh "Impact of gut permeability on estimation of oral bioavailability for chemicals in commerce and the environment." ALTEX 42.1 (2024): 56. <https://doi.org/10.14573/altex.2403271>
+Honda, Gregory S., Elaina M Kenyon , Sarah Davidson-Fritz, Roger Dinallo, Hisham El-Masri, Evgenia Korol-Bexell, Li Li, Derek Angus, Robert G Pearce, Risa R Sayre, Christopher Strock, Russell S Thomas, Barbara A Wetmore, and John F Wambaugh. "Impact of gut permeability on estimation of oral bioavailability for chemicals in commerce and the environment." *ALTEX* 42.1 (2024): 56. <https://doi.org/10.14573/altex.2403271>
 
 
