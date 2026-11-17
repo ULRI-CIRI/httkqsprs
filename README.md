@@ -136,8 +136,8 @@ Andrew Shapiro [Andy.Shapiro@UL.org]
 Chemical Insights develops data and tools that adhere to the FAIR principles – Findable, Accessible, Interoperable, and Reusable. Our mission is to provide trustworthy, scientifically grounded predictions of chemical behavior. 
 
 We emphasize rigorous scientific peer review:
-#	Wherever possible, we integrate existing, peer-reviewed data and tools.
-#	When creating new data or methods, we submit them to external peer review to ensure quality and credibility.
+1.	Wherever possible, we integrate existing, peer-reviewed data and tools.
+2.	When creating new data or methods, we submit them to external peer review to ensure quality and credibility.
 
 Our goal is to inform standards, support evidence-based decision-making, and protect public health. We are passionate about advancing scientific discovery and applying it to real-world health challenges. 
 
