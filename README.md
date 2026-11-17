@@ -143,7 +143,7 @@ Our goal is to inform standards, support evidence-based decision-making, and pro
 
 ## License
 
-License: [MIT](https://en.wikipedia.org/wiki/MIT_License)
+License: [MIT](https://en.wikipedia.org/wiki/MIT_License) <https://github.com/ULRI-CIRI/httkqsprs/blob/main/LICENSE>
 
 ## References
 
