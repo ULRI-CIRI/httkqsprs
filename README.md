@@ -130,6 +130,19 @@ John Wambaugh [John.Wambaugh@UL.org]
 Zach Stanfiled [Zach.Stanfield@UL.org]
 Andrew Shapiro [Andy.Shapiro@UL.org]
 
+## Chemical Insights
+[ULRI Chemical Insights]( https://chemicalinsights.org/) is an independent, non-profit research organization (501(c)(3)) dedicated to advancing the understanding of chemical exposures and their impacts on human health. We build on UL’s 130-year legacy in safety science. We are committed to producing peer-reviewed, open-access research that serves as a trusted resource for the public and scientific community. Our systems are completely separate from UL Solutions testing laboratories.
+
+Chemical Insights develops data and tools that adhere to the FAIR principles – Findable, Accessible, Interoperable, and Reusable. Our mission is to provide trustworthy, scientifically grounded predictions of chemical behavior. 
+
+We emphasize rigorous scientific peer review:
+#	Wherever possible, we integrate existing, peer-reviewed data and tools.
+#	When creating new data or methods, we submit them to external peer review to ensure quality and credibility.
+
+Our goal is to inform standards, support evidence-based decision-making, and protect public health. We are passionate about advancing scientific discovery and applying it to real-world health challenges. 
+
+
+
 ## References
 
 Dawson, D., B. Ingle, K. Phillips, J. Nichols, J. Wambaugh, and R. Tornero-Velez. Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors. *Environmental Science & Technology* 55(9):6505-6517 (2021). <https://doi.org/10.1021/acs.est.0c06117>
