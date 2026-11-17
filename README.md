@@ -151,4 +151,5 @@ Daswson, Daniel E., Brandall L. Ingle, Katherine A. Phillips, John W. Nichols, J
 
 Honda, Gregory S., Elaina M Kenyon , Sarah Davidson-Fritz, Roger Dinallo, Hisham El-Masri, Evgenia Korol-Bexell, Li Li, Derek Angus, Robert G Pearce, Risa R Sayre, Christopher Strock, Russell S Thomas, Barbara A Wetmore, and John F Wambaugh. "Impact of gut permeability on estimation of oral bioavailability for chemicals in commerce and the environment." *ALTEX* 42.1 (2024): 56. <https://doi.org/10.14573/altex.2403271>
 
+Wambaugh, John F., , Kristin K. Isaacs, Nathaniel Charest, Andrew J. Shapiro, Zach Stanfield, Jonathan T. Wall, Katie Paul Friedman, Mark Wilson, Russell S. Thomas. "The Toxicokinetic Data Landscape for a Global Chemical Collection." *submitted* (2026).
 
