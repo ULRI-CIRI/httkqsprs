@@ -43,6 +43,7 @@ jobs:
 
       - name: Install package
         run: |
+          sudo apt-get install -y libcurl4-openssl-dev  # neded for R::devtools
           # pinned to version https://github.com/A2-ai/rv/releases/tag/v0.23.1
           curl -sSL https://raw.githubusercontent.com/A2-ai/rv/c641020c3d52ad7c1e28e41f7c5337879d363db1/scripts/install.sh | bash
           # init rv to install rv/scripts and then sync packages
