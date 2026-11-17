@@ -1,8 +1,10 @@
-# Dawson-et-al.-2021_Clint_fup_predictions
-
-Supplemental material for Dawson et al. (2021), ["Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors"](https://doi.org/10.1021/acs.est.0c06117).
+# HTTK QSPRs
 
 This repository hosts [`httkqsprs`](httkqsprs), an R package implementing the random forest Quantitative Structure-Property Relationship (QSPR) models that predict high-throughput toxicokinetic (HTTK) parameters for novel chemicals from open-source structural descriptors.
+
+## Origin
+
+This fraction unbound in plasma (fup) and intrinsic heaptic clearance (Clint) QPSR models are from the (supplemental material)[https://github.com/HumanExposure/Dawson-et-al.-2021_Clint_fup_predictions] for Dawson et al. (2021), ["Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors"](https://doi.org/10.1021/acs.est.0c06117). The Caco-2 membrane permeability QSPR is from the [supplemental material](https://github.com/USEPA/CompTox-Expocast-Caco2) for Honda et al. (2025), ["Impact of Gut Permeability on Estimation of Oral Bioavailability for Chemicals in Commerce and the Environment"](https://doi.org/10.14573/altex.2403271).
 
 ## The `httkqsprs` package
 
@@ -122,10 +124,16 @@ One Papp parity check cannot run under `R CMD check` because it reads large desc
 Rscript scripts/verify-papp-parity.R
 ```
 
-## Citation
+## Authors
+
+John Wambaugh [John.Wambaugh@UL.org]
+Zach Stanfiled [Zach.Stanfield@UL.org]
+Andrew Shapiro [Andy.Shapiro@UL.org]
+
+## References
 
 Dawson, D., B. Ingle, K. Phillips, J. Nichols, J. Wambaugh, and R. Tornero-Velez. Designing QSARs for Parameters of High-Throughput Toxicokinetic Models Using Open-Source Descriptors. *Environmental Science & Technology* 55(9):6505-6517 (2021). <https://doi.org/10.1021/acs.est.0c06117>
 
-## Disclaimer
+Honda, Gregory S., Elaina M Kenyon , Sarah Davidson-Fritz, Roger Dinallo, Hisham El-Masri, Evgenia Korol-Bexell, Li Li, Derek Angus, Robert G Pearce, Risa R Sayre, Christopher Strock, Russell S Thomas, Barbara A Wetmore, and John F Wambaugh "Impact of gut permeability on estimation of oral bioavailability for chemicals in commerce and the environment." ALTEX 42.1 (2024): 56. <https://doi.org/10.14573/altex.2403271>
 
-The views expressed here are those of the authors and do not necessarily represent the views or the policies of the U.S. Environmental Protection Agency.
+
