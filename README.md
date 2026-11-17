@@ -126,9 +126,9 @@ Rscript scripts/verify-papp-parity.R
 
 ## Authors
 
-*John Wambaugh [John.Wambaugh@UL.org]
-*Zach Stanfiled [Zach.Stanfield@UL.org]
-*Andrew Shapiro [Andy.Shapiro@UL.org]
+* John Wambaugh [John.Wambaugh@UL.org]
+* Zach Stanfiled [Zach.Stanfield@UL.org]
+* Andrew Shapiro [Andy.Shapiro@UL.org]
 
 ## Chemical Insights
 [ULRI Chemical Insights]( https://chemicalinsights.org/) is an independent, non-profit research organization (501(c)(3)) dedicated to advancing the understanding of chemical exposures and their impacts on human health. We build on UL’s 130-year legacy in safety science. We are committed to producing peer-reviewed, open-access research that serves as a trusted resource for the public and scientific community. Our systems are completely separate from UL Solutions testing laboratories.
