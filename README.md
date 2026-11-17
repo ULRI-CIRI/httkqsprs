@@ -141,7 +141,9 @@ We emphasize rigorous scientific peer review:
 
 Our goal is to inform standards, support evidence-based decision-making, and protect public health. We are passionate about advancing scientific discovery and applying it to real-world health challenges. 
 
+## License
 
+License: [MIT](https://en.wikipedia.org/wiki/MIT_License)
 
 ## References
 
