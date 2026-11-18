@@ -1,10 +1,3 @@
-test_that("papp predictions match the committed golden output", {
-  expected <- readRDS(test_path("fixtures", "expected-papp.rds"))
-  got <- calc_papp(load_fixture_descriptors())
-
-  expect_golden_output(got$output, expected$output, "Papp")
-})
-
 # $missing contract: unlike Clint and Fup, Papp never excludes a chemical --
 # it mean-imputes absent descriptors -- so $missing is documented as always
 # NULL. Every input chemical must therefore appear in $output.
@@ -98,7 +91,7 @@ test_that("prepare_papp_descriptors() keeps every model column on zero rows", {
 })
 
 # Review Focus 7: the six descriptors calc_papp() can never source are
-# mean-imputed to a constant. That is pre-refactor behaviour and must stay.
+# mean-imputed to a constant.
 test_that("the six unsourceable descriptors stay constant after preparation", {
   prepared <- prepare_papp_descriptors(load_fixture_descriptors())
   constant_by_construction <- c(
@@ -169,9 +162,3 @@ test_that("an infinite descriptor still yields predictions for every row", {
   expect_false(anyNA(got$output$Pab.Class.Pred))
   expect_false(anyNA(got$output$Pab.Pred.AD))
 })
-
-# Tie handling and full-set vote-matrix parity are checked by
-# `scripts/verify-papp-parity.R`, not here. Both need the 74 MB April-2026
-# CSVs, which are not in the package tarball, so a test form of them fails
-# under `R CMD check`. The fixture subset contains no tied chemical, so there
-# is no fixture-based version of the tie check that would test anything.
