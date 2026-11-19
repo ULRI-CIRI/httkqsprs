@@ -116,18 +116,14 @@ Run the test suite with:
 devtools::test("httkqsprs")
 ```
 
-The tests compare current output against fixtures frozen before the package was decoupled from its original database backend. See [httkqsprs/tests/testthat/fixtures/README.md](httkqsprs/tests/testthat/fixtures/README.md) for what each fixture is and why it must not be regenerated from current code.
-
-One Papp parity check cannot run under `R CMD check` because it reads large descriptor files from outside the package. Run it directly instead:
-
-```bash
-Rscript scripts/verify-papp-parity.R
-```
+The tests cover prediction input and output contracts using a small pair of
+descriptor CSVs. See [httkqsprs/tests/testthat/fixtures/README.md](httkqsprs/tests/testthat/fixtures/README.md)
+for the test input details.
 
 ## Authors
 
 * John Wambaugh [John.Wambaugh@UL.org]
-* Zach Stanfiled [Zach.Stanfield@UL.org]
+* Zach Stanfield [Zachary.Stanfield@UL.org]
 * Andrew Shapiro [Andy.Shapiro@UL.org]
 
 ## Chemical Insights

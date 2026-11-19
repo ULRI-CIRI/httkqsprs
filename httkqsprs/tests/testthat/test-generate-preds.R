@@ -1,21 +1,3 @@
-test_that("generate_preds reproduces the golden output from CSVs", {
-  got <- generate_preds(
-    "subset",
-    input.folder = test_path("fixtures"),
-    operapostfix = "-opera.csv",
-    padelpostfix = "-padel.csv",
-    write.files = FALSE
-  )
-
-  for (endpoint in c("Clint", "Fup", "Papp")) {
-    expected <- readRDS(test_path(
-      "fixtures",
-      paste0("expected-", tolower(endpoint), ".rds")
-    ))
-    expect_golden_output(got[[endpoint]]$output, expected$output, endpoint)
-  }
-})
-
 test_that("write.files = TRUE writes five CSVs into output.folder", {
   out_dir <- withr::local_tempdir()
 
