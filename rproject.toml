@@ -3,7 +3,7 @@ name = "httkqsprs"
 r_version = "4.5"
 
 repositories = [
-    {alias = "CRAN", url = "https://packagemanager.posit.co/cran/latest"},
+    { alias = "PPM", url = "https://packagemanager.posit.co/cran/latest" },
 ]
 
 dependencies = [
