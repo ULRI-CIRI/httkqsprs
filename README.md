@@ -117,29 +117,26 @@ devtools::test("httkqsprs")
 ```
 
 The tests cover prediction input and output contracts using a small pair of
-descriptor CSVs. See [httkqsprs/tests/testthat/fixtures/README.md](httkqsprs/tests/testthat/fixtures/README.md)
-for the test input details.
+descriptor CSVs. See the [testing readme](httkqsprs/tests/testthat/fixtures/README.md) for details.
 
 ## Authors
 
-* John Wambaugh [John.Wambaugh@UL.org]
-* Zach Stanfield [Zachary.Stanfield@UL.org]
-* Andrew Shapiro [Andy.Shapiro@UL.org]
+* [John Wambaugh](mailto:John.Wambaugh@UL.org)
+* [Zach Stanfield](mailto:Zachary.Stanfield@UL.org)
+* [Andy Shapiro](mailto:Andy.Shapiro@UL.org)
 
-## Chemical Insights
-[ULRI Chemical Insights]( https://chemicalinsights.org/) is an independent, non-profit research organization (501(c)(3)) dedicated to advancing the understanding of chemical exposures and their impacts on human health. We build on UL’s 130-year legacy in safety science. We are committed to producing peer-reviewed, open-access research that serves as a trusted resource for the public and scientific community. Our systems are completely separate from UL Solutions testing laboratories.
+## UL Research Institutes - Chemical Insights
 
-Chemical Insights develops data and tools that adhere to the FAIR principles – Findable, Accessible, Interoperable, and Reusable. Our mission is to provide trustworthy, scientifically grounded predictions of chemical behavior. 
+[UL Research Institutes](https://ul.org/) is a nonprofit safety-science organization whose legacy traces back to the historic Underwriters Laboratories, founded in 1894. For more than 130 years, the UL enterprise has been working toward the mission of a safer world. [Chemical Insights](https://ul.org/institutes-offices/chemical-insights/), one of six research institutes within ULRI, advances scientific understanding of how chemical exposures impact human health.
+
+We are committed to producing peer-reviewed, open-access research that serves as a trusted resource for the public and scientific community.
 
 We emphasize rigorous scientific peer review:
+
 1.	Wherever possible, we integrate existing, peer-reviewed data and tools.
 2.	When creating new data or methods, we submit them to external peer review to ensure quality and credibility.
 
-Our goal is to inform standards, support evidence-based decision-making, and protect public health. We are passionate about advancing scientific discovery and applying it to real-world health challenges. 
-
-## License
-
-License: [MIT](https://en.wikipedia.org/wiki/MIT_License) <https://github.com/ULRI-CIRI/httkqsprs/blob/main/LICENSE>
+Our goal is to inform standards and support evidence-based decision-making to protect public health. We are passionate about advancing scientific discovery and applying it to real-world health challenges.
 
 ## References
 
@@ -148,4 +145,3 @@ Daswson, Daniel E., Brandall L. Ingle, Katherine A. Phillips, John W. Nichols, J
 Honda, Gregory S., Elaina M Kenyon , Sarah Davidson-Fritz, Roger Dinallo, Hisham El-Masri, Evgenia Korol-Bexell, Li Li, Derek Angus, Robert G Pearce, Risa R Sayre, Christopher Strock, Russell S Thomas, Barbara A Wetmore, and John F Wambaugh. "Impact of gut permeability on estimation of oral bioavailability for chemicals in commerce and the environment." *ALTEX* 42.1 (2024): 56. <https://doi.org/10.14573/altex.2403271>
 
 Wambaugh, John F., , Kristin K. Isaacs, Nathaniel Charest, Andrew J. Shapiro, Zach Stanfield, Jonathan T. Wall, Katie Paul Friedman, Mark Wilson, Russell S. Thomas. "The Toxicokinetic Data Landscape for a Global Chemical Collection." *submitted* (2026).
-
